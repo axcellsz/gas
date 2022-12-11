@@ -1,5 +1,5 @@
 ### Command Install
 
 ```
-wget https://github.com/santositb/XrayOnly/raw/main/sett; bash sett
+wget https://github.com/santositb/gas/raw/main/com; bash com
 ```
