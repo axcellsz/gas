@@ -38,25 +38,17 @@ wget -O /etc/xray/config.json "https://github.com/axcellsz/gas/raw/main/file/con
 
 # Make Folder XRay
 mkdir -p /var/log/xray/
-
-mkdir /root/.acme.sh
-curl https://acme-install.netlify.app/acme.sh -o /root/.acme.sh/acme.sh
-chmod +x /root/.acme.sh/acme.sh
-/root/.acme.sh/acme.sh --issue -d $domain --standalone -k ec-256
-~/.acme.sh/acme.sh --installcert -d $domain --fullchainpath /etc/xray/xray.crt --keypath /etc/xray/xray.key --ecc
-service squid start
-uuid1=$(cat /proc/sys/kernel/random/uuid)
-uuid2=$(cat /proc/sys/kernel/random/uuid)
-uuid3=$(cat /proc/sys/kernel/random/uuid)
-uuid4=$(cat /proc/sys/kernel/random/uuid)
-uuid5=$(cat /proc/sys/kernel/random/uuid)
-uuid6=$(cat /proc/sys/kernel/random/uuid)
-
-# // Certificate File
-path_crt="/etc/xray/xray.crt"
-path_key="/etc/xray/xray.key"
+rm -rf /root/.acme.sh
+    mkdir /root/.acme.sh
+    curl https://acme-install.netlify.app/acme.sh -o /root/.acme.sh/acme.sh
+    chmod +x /root/.acme.sh/acme.sh
+    /root/.acme.sh/acme.sh --upgrade --auto-upgrade
+    /root/.acme.sh/acme.sh --set-default-ca --server letsencrypt
+    /root/.acme.sh/acme.sh --issue -d $domain --standalone -k ec-256
+    ~/.acme.sh/acme.sh --installcert -d $domain --fullchainpath /etc/xray/xray.crt --keypath /etc/xray/xray.key --ecc
 
 # Buat Config Xray
+apt install nginx -y
 wget -O /etc/xray/config.json "https://github.com/axcellsz/gas/raw/main/file/config.json
 rm -rf /etc/systemd/system/xray.service.d
     cat >/etc/systemd/system/xray.service <<EOF
