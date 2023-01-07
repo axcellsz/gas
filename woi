@@ -84,7 +84,7 @@ PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
 2 0 * * * root /usr/bin/xp
 END
 # konfigurasi menu
-echo -e "konfigurasi menu"
+echo -e " ${GRB}KONFIGURASI MENU"
 sleep 1
     cd
     rm -rf *
