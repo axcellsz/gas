@@ -11,4 +11,4 @@ wget https://github.com/axcellsz/gas/raw/main/start; bash start
 ```
 
 ### SCRIPT by AXNET
-https://t.me/dave_machine89
+https://t.me/axsystem
