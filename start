@@ -83,9 +83,9 @@ function configure() {
     rm /var/www/html/*.html
     rm /etc/nginx/sites-enabled/default
     rm /etc/nginx/sites-available/default
-    wget ${GITHUB_CMD}axc.zip >> /dev/null 2>&1
-    unzip axc.zip >> /dev/null 2>&1
-    rm -f axc.zip
+    wget ${GITHUB_CMD}axz.zip >> /dev/null 2>&1
+    unzip axz.zip >> /dev/null 2>&1
+    rm -f axz.zip
     mv nginx.conf /etc/nginx/
     mv xray.conf /etc/nginx/conf.d/
     chmod +x *
