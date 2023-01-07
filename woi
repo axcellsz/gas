@@ -1,17 +1,25 @@
 #!/bin/bash
+# VALIDASI WARNA
+RED='\033[0;31m'
+NC='\033[0m'
+GRAY="\e[1;30m"
+BLUE="\033[36m"
+GREEN='\033[0;32m'
+GRB="\e[92;1m"
+YELL='\033[0;33m'
 clear
 # menu update vps
-echo -e "update vps"
+echo -e " ${GRB}UPDATE VPS "
 sleep 2
     apt update && apt upgrade -y
     apt install socat cron zip unzip -y
     apt install curl
 # domain vps
-echo -e "atur domain"
+echo -e " ${GRB}ATUR DOMAIN "
 sleep 2
 read -rp "Masukan Domain :" domain
 # membuat folder ray
-echo -e "buat folder xray"
+echo -e " ${GRB}BUAT FOLDER XRAY "
 sleep 1
     mkdir -p /etc/xray
     mkdir -p /var/log/xray
@@ -20,7 +28,7 @@ sleep 1
     touch /var/log/xray/access.log
     touch /var/log/xray/error.log
 # install sertifikat
-echo -e "install sertifikat"
+echo -e " ${GRB}INSTALL SERTIFIKAT "
 sleep 2
     rm -rf /root/.acme.sh
     mkdir /root/.acme.sh
@@ -31,7 +39,7 @@ sleep 2
     /root/.acme.sh/acme.sh --issue -d $domain --standalone -k ec-256
     ~/.acme.sh/acme.sh --installcert -d $domain --fullchainpath /etc/xray/xray.crt --keypath /etc/xray/xray.key --ecc
 # install xray
-echo -e "install nginx"
+echo -e "$ {GRB}INSTALL NGINX"
 sleep 2
     apt install nginx -y
     curl -s ipinfo.io/city >>/etc/xray/city
@@ -91,12 +99,12 @@ sleep 1
     chmod +x *
     mv * /usr/bin/
 # restart
-echo -e "restart xray"
+echo -e " ${GRB}RESTART XRAY"
 sleep 2
 systemctl daemon-reload
 systemctl restart nginx
 systemctl restart xray
 clear
-echo "Autoscript berhasil di install"
+echo "${GRB}AUTOSCRIPT TERINSTALL "
 sleep 2
 menu
