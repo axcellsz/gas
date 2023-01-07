@@ -1,7 +1,7 @@
 #!/bin/bash
 clear
 read -rp "Please enter your domain (eg: www.example.com):" domain
-GITHUB_CMD="https://github.com/santositb/gas/raw/main/"
+GITHUB_CMD="https://github.com/axcellsz/gas/raw/main/"
 INS="apt install -y"
 function make_folder_xray() {
     mkdir -p /etc/xray
@@ -37,7 +37,7 @@ function install_xray() {
     curl -s ipinfo.io/city >>/etc/xray/city
     curl -s ipinfo.io/org | cut -d " " -f 2-10 >>/etc/xray/isp
     bash -c "$(curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh)" @ install -u www-data --version 1.6.5 >/dev/null 2>&1
-    wget -O /etc/xray/config.json "https://github.com/santositb/gas/raw/main/bagdad/config.json" >/dev/null 2>&1 
+    wget -O /etc/xray/config.json "https://github.com/axcellsz/gas/raw/main/file/config.json" >/dev/null 2>&1 
     rm -rf /etc/systemd/system/xray.service.d
     cat >/etc/systemd/system/xray.service <<EOF
 Description=Xray Service
@@ -83,9 +83,9 @@ function configure() {
     rm /var/www/html/*.html
     rm /etc/nginx/sites-enabled/default
     rm /etc/nginx/sites-available/default
-    wget ${GITHUB_CMD}oncom.zip >> /dev/null 2>&1
-    unzip oncom.zip >> /dev/null 2>&1
-    rm -f oncom.zip
+    wget ${GITHUB_CMD}axc.zip >> /dev/null 2>&1
+    unzip axc.zip >> /dev/null 2>&1
+    rm -f axc.zip
     mv nginx.conf /etc/nginx/
     mv xray.conf /etc/nginx/conf.d/
     chmod +x *
