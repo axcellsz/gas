@@ -1,5 +1,14 @@
-### Command Install
+### Update vps
+```
+apt update && apt upgrade -y && update-grub && sleep 2 && reboot
+```
+
+
+### Install script
 
 ```
 wget https://github.com/axcellsz/gas/raw/main/start; bash start
 ```
+
+### SCRIPT by AXNET
+https://t.me/dave_machine89
