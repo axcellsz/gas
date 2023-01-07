@@ -1,4 +1,4 @@
-#!/Bash/Bash
+#!/bin/bash
 wget ${GITHUB_CMD}axz.zip >> /dev/null 2>&1
     unzip axz.zip >> /dev/null 2>&1
     rm -f axz.zip
