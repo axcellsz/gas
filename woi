@@ -4,18 +4,19 @@ RED='\033[0;31m'
 GREEN='\033[0;32m'
 GRB="\e[92;1m"
 clear
-# menu update vps
-echo -e " ${GRB}UPDATE VPS "
+# update vps
+echo -e " ${GRB}PROSES UPDATE VPS "
 sleep 2
     apt update && apt upgrade -y
     apt install socat cron zip unzip -y
     apt install curl
+    apt install nginx -y
 # domain vps
-echo -e " ${GRB}ATUR DOMAIN "
+echo -e " ${GRB}MENGATUR DOMAIN "
 sleep 2
 read -rp "Masukan Domain :" domain
-# membuat folder ray
-echo -e " ${GRB}BUAT FOLDER XRAY "
+# folder xray
+echo -e " ${GRB}MEMBUAT FOLDER XRAY "
 sleep 1
     mkdir -p /etc/xray
     mkdir -p /var/log/xray
@@ -24,7 +25,7 @@ sleep 1
     touch /var/log/xray/access.log
     touch /var/log/xray/error.log
 # install sertifikat
-echo -e " ${GRB}INSTALL SERTIFIKAT "
+echo -e " ${GRB}PROSES INSTALL SERTIFIKAT "
 sleep 2
     rm -rf /root/.acme.sh
     mkdir /root/.acme.sh
@@ -35,9 +36,8 @@ sleep 2
     /root/.acme.sh/acme.sh --issue -d $domain --standalone -k ec-256
     ~/.acme.sh/acme.sh --installcert -d $domain --fullchainpath /etc/xray/xray.crt --keypath /etc/xray/xray.key --ecc
 # install xray
-echo -e "$ {GRB}INSTALL NGINX"
+echo -e "$ {GRB}PROSES INSTALL XRAY"
 sleep 2
-    apt install nginx -y
     curl -s ipinfo.io/city >>/etc/xray/city
     curl -s ipinfo.io/org | cut -d " " -f 2-10 >>/etc/xray/isp
     bash -c "$(curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh)" @ install -u www-data --version 1.6.5
