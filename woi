@@ -1,13 +1,16 @@
 #!/bin/bash
 # VALIDASI WARNA
 NC='\033[0m'
+BL="\033[36m"
 RED='\033[0;31m'
 GREEN='\033[0;32m'
+YL='\033[0;33m'
 GRB="\e[92;1m"
 clear
 # update vps
-echo -e " ${NC}PROSES UPDATE & UPGRADE VPS "
+echo -e " ${BL}PROSES UPDATE & UPGRADE VPS "
 sleep 2
+echo -e " ${YL} "
     apt update && apt upgrade -y
     apt install socat cron zip unzip -y
     apt install curl
@@ -16,8 +19,9 @@ echo -e " ${GRB}PROSES UPDATE & UPGRADE SELESAI "
 sleep 2
 clear
 # domain vps
-echo -e " ${NC}MENGATUR DOMAIN VPS"
+echo -e " ${BL}MENGATUR DOMAIN VPS"
 sleep 2
+echo -e " ${YL} "
 read -rp "Masukan Domain :" domain
 clear
 echo -e " ${GRB} "
@@ -32,11 +36,11 @@ clear
 echo -e " ${GRB}°°° "
 sleep 1
 clear
-echo -e " ${GRB}SUKSES!! DOMAIN DITAMBAHKAN "
+echo -e " ${GRB}DOMAIN DITAMBAHKAN "
 sleep 2
 clear
 # folder xray
-echo -e " ${NC}MEMBUAT FOLDER XRAY "
+echo -e " ${BL}MEMBUAT FOLDER XRAY "
 sleep 2
     mkdir -p /etc/xray
     mkdir -p /var/log/xray
@@ -58,11 +62,12 @@ echo -e " ${GRB}°°° "
 sleep 1
 clear
 echo -e " ${GRB}FOLDER XRAY SUDAH DIBUAT "
+sleep 2
 clear
 # install sertifikat
-echo -e " ${NC}PROSES INSTALL SERTIFIKAT "
+echo -e " ${GRB}PROSES INSTALL SERTIFIKAT "
 sleep 2
-echo -e " ${GREEN} "
+echo -e " ${YL} "
     rm -rf /root/.acme.sh
     mkdir /root/.acme.sh
     curl https://acme-install.netlify.app/acme.sh -o /root/.acme.sh/acme.sh
@@ -77,6 +82,7 @@ clear
 # install xray
 echo -e "$ {NC}PROSES INSTALL XRAY"
 sleep 2
+echo -e " ${YL} "BISA 
     curl -s ipinfo.io/city >>/etc/xray/city
     curl -s ipinfo.io/org | cut -d " " -f 2-10 >>/etc/xray/isp
     bash -c "$(curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh)" @ install -u www-data --version 1.6.5
@@ -123,7 +129,7 @@ sleep 2
 clear
 # konfigurasi menu
 echo -e " ${GRB}KONFIGURASI MENU"
-sleep 1
+sleep 2
     cd
     rm -rf *
     rm /var/www/html/*.html
@@ -139,7 +145,55 @@ sleep 1
 systemctl daemon-reload
 systemctl restart nginx
 systemctl restart xray
+echo -e " ${GRB} "
+sleep 1
+clear
+echo -e " ${GRB}° "
+sleep 1
+clear
+echo -e " ${GRB}°° "
+sleep 1
+clear
+echo -e " ${GRB}°°° "
+sleep 1
+clear
+echo "${YL}SELESAI.. "
+sleep 2
 clear
 echo "${GRB}AUTOSCRIPT TERINSTALL "
 sleep 2
+clear
+echo -e " ${GRB} "
+sleep 1
+clear
+echo -e " ${GRB}🅂 "
+sleep 1
+clear
+echo -e " ${GRB}🅂🄴 "
+sleep 1
+clear
+echo -e " ${GRB}🅂🄴🄼 "
+sleep 1
+clear
+echo -e " ${GRB}🅂🄴🄼🄾 "
+sleep 1
+clear
+echo -e " ${GRB}🅂🄴🄼🄾🄶 "
+sleep 1
+clear
+echo -e " ${GRB}🅂🄴🄼🄾🄶🄰 "
+sleep 1
+clear
+echo -e " ${GRB}🅂🄴🄼🄾🄶🄰 🄲 "
+sleep 1
+clear
+echo -e " ${GRB}🅂🄴🄼🄾🄶🄰 🄲🅄 "
+sleep 1
+clear
+echo -e " ${GRB}🅂🄴🄼🄾🄶🄰 🄲🅄🄰 "
+sleep 1
+clear
+echo -e " ${GRB}🅂🄴🄼🄾🄶🄰 🄲🅄🄰🄽 "
+sleep 3
+clear
 menu
