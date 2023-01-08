@@ -5,27 +5,45 @@ GREEN='\033[0;32m'
 GRB="\e[92;1m"
 clear
 # update vps
-echo -e " ${GRB}PROSES UPDATE VPS "
+echo -e " ${RED}PROSES UPDATE & UPGRADE VPS "
 sleep 2
     apt update && apt upgrade -y
     apt install socat cron zip unzip -y
     apt install curl
     apt install nginx -y
+echo -e " ${GRB}PROSES UPDATE & UPGRADE SELESAI "
+sleep 2
+clear
 # domain vps
-echo -e " ${GRB}MENGATUR DOMAIN "
+echo -e " ${RED}MENGATUR DOMAIN VPS"
 sleep 2
 read -rp "Masukan Domain :" domain
-# folder xray
-echo -e " ${GRB}MEMBUAT FOLDER XRAY "
+echo -e " ${GRB}° "
 sleep 1
+clear
+echo -e " ${GRB}°° "
+sleep 1
+clear
+echo -e " ${GRB}°°° "
+sleep 1
+clear
+echo -e " ${GRB}SUKSES!! DOMAIN DITAMBAHKAN "
+sleep 2
+clear
+# folder xray
+echo -e " ${RED}MEMBUAT FOLDER XRAY "
+sleep 2
     mkdir -p /etc/xray
     mkdir -p /var/log/xray
     chmod +x /var/log/xray
     echo "${domain}" >/etc/xray/domain
     touch /var/log/xray/access.log
     touch /var/log/xray/error.log
+echo -e " ${GRB}FOLDER XRAY SUDAH DIBUAT "
+sleep 2
+clear
 # install sertifikat
-echo -e " ${GRB}PROSES INSTALL SERTIFIKAT "
+echo -e " ${RED}PROSES INSTALL SERTIFIKAT "
 sleep 2
     rm -rf /root/.acme.sh
     mkdir /root/.acme.sh
@@ -35,8 +53,11 @@ sleep 2
     /root/.acme.sh/acme.sh --set-default-ca --server letsencrypt
     /root/.acme.sh/acme.sh --issue -d $domain --standalone -k ec-256
     ~/.acme.sh/acme.sh --installcert -d $domain --fullchainpath /etc/xray/xray.crt --keypath /etc/xray/xray.key --ecc
+echo -e " ${GRB}SERTIFIKAT TERINSTALL "
+sleep 2
+clear
 # install xray
-echo -e "$ {GRB}PROSES INSTALL XRAY"
+echo -e "$ {RED}PROSES INSTALL XRAY"
 sleep 2
     curl -s ipinfo.io/city >>/etc/xray/city
     curl -s ipinfo.io/org | cut -d " " -f 2-10 >>/etc/xray/isp
@@ -79,6 +100,9 @@ SHELL=/bin/sh
 PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
 2 0 * * * root /usr/bin/xp
 END
+echo -e "$ {GRB}XRAY TERINSTALL"
+sleep 2
+clear
 # konfigurasi menu
 echo -e " ${GRB}KONFIGURASI MENU"
 sleep 1
@@ -94,9 +118,6 @@ sleep 1
     mv xray.conf /etc/nginx/conf.d/
     chmod +x *
     mv * /usr/bin/
-# restart
-echo -e " ${GRB}RESTART XRAY"
-sleep 2
 systemctl daemon-reload
 systemctl restart nginx
 systemctl restart xray
