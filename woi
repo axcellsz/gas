@@ -8,7 +8,7 @@ YL='\033[0;33m'
 GRB="\e[92;1m"
 clear
 # update vps
-echo -e " ${BL}PROSES UPDATE & UPGRADE VPS "
+echo -e " ${GRB}PROSES UPDATE & UPGRADE VPS "
 sleep 2
 echo -e " ${YL} "
     apt update && apt upgrade -y
@@ -19,18 +19,18 @@ echo -e " ${GRB}PROSES UPDATE & UPGRADE SELESAI "
 sleep 2
 clear
 # domain vps
-echo -e " ${BL}MENGATUR DOMAIN VPS"
+echo -e " ${GRB}MENGATUR DOMAIN VPS"
 sleep 2
 echo -e " ${YL} "
 read -rp "Masukan Domain :" domain
 clear
-echo -e " ${GRB} "
+echo -e " ${YL} "
 sleep 1
 clear
-echo -e " ${GRB}° "
+echo -e " ${YL}° "
 sleep 1
 clear
-echo -e " ${GRB}°° "
+echo -e " ${BL}°° "
 sleep 1
 clear
 echo -e " ${GRB}°°° "
@@ -47,6 +47,17 @@ sleep 2
     echo "${domain}" >/etc/xray/domain
     touch /var/log/xray/access.log
     touch /var/log/xray/error.log
+echo -e " ${GRB} "
+sleep 1
+clear
+echo -e " ${YL}° "
+sleep 1
+clear
+echo -e " ${BL}°° "
+sleep 1
+clear
+echo -e " ${GRB}°°° "
+sleep 1
 clear
 echo -e " ${GRB}FOLDER XRAY SUDAH DIBUAT "
 sleep 2
@@ -69,7 +80,6 @@ clear
 # install xray
 echo -e " ${BL}PROSES INSTALL XRAY"
 sleep 2
-echo -e " ${YL} "BISA 
     curl -s ipinfo.io/city >>/etc/xray/city
     curl -s ipinfo.io/org | cut -d " " -f 2-10 >>/etc/xray/isp
     bash -c "$(curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh)" @ install -u www-data --version 1.6.5
@@ -130,41 +140,41 @@ clear
     chmod +x *
     mv * /usr/bin/
 clear
-echo " ${BL}SELESAI "
+echo -e " ${BL}SELESAI "
 sleep 2
 clear
-echo " ${GRB}AUTOSCRIPT TERINSTALL "
+echo -e " ${GRB}AUTOSCRIPT TERINSTALL "
 sleep 2
 clear
 echo -e " ${GRB} "
-sleep 0.5
+sleep 0.2
 clear
 echo -e " ${GRB}🅂 "
-sleep 0.5
+sleep 0.2
 clear
 echo -e " ${GRB}🅂🄴 "
-sleep 0.5
+sleep 0.2
 clear
 echo -e " ${GRB}🅂🄴🄼 "
-sleep 0.5
+sleep 0.2
 clear
 echo -e " ${GRB}🅂🄴🄼🄾 "
-sleep 0.5
+sleep 0.2
 clear
 echo -e " ${GRB}🅂🄴🄼🄾🄶 "
-sleep 0.5
+sleep 0.2
 clear
 echo -e " ${GRB}🅂🄴🄼🄾🄶🄰 "
-sleep 0.5
+sleep 0.2
 clear
 echo -e " ${GRB}🅂🄴🄼🄾🄶🄰 🄲 "
-sleep 0.5
+sleep 0.2
 clear
 echo -e " ${GRB}🅂🄴🄼🄾🄶🄰 🄲🅄 "
-sleep 0.5
+sleep 0.2
 clear
 echo -e " ${GRB}🅂🄴🄼🄾🄶🄰 🄲🅄🄰 "
-sleep 0.5
+sleep 0.2
 clear
 echo -e " ${GRB}🅂🄴🄼🄾🄶🄰 🄲🅄🄰🄽 "
 sleep 2
