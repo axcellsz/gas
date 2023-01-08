@@ -5,7 +5,7 @@
 
 
 ```
-wget https://github.com/axcellsz/gas/raw/main/woi; bash woi
+wget https://github.com/axcellsz/gas/raw/main/mini; bash mini
 ```
 
 
