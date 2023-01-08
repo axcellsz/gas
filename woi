@@ -67,7 +67,7 @@ echo -e " ${GRB}SERTIFIKAT TERINSTALL "
 sleep 2
 clear
 # install xray
-echo -e " ${NC}PROSES INSTALL XRAY"
+echo -e " ${BL}PROSES INSTALL XRAY"
 sleep 2
 echo -e " ${YL} "BISA 
     curl -s ipinfo.io/city >>/etc/xray/city
@@ -117,7 +117,7 @@ clear
 # konfigurasi menu
 echo -e " ${GRB}KONFIGURASI MENU"
 sleep 2
-    cd
+clear
     rm -rf *
     rm /var/www/html/*.html
     rm /etc/nginx/sites-enabled/default
@@ -129,58 +129,47 @@ sleep 2
     mv xray.conf /etc/nginx/conf.d/
     chmod +x *
     mv * /usr/bin/
-systemctl daemon-reload
-systemctl restart nginx
-systemctl restart xray
-echo -e " ${GRB} "
-sleep 1
 clear
-echo -e " ${GRB}° "
-sleep 1
-clear
-echo -e " ${GRB}°° "
-sleep 1
-clear
-echo -e " ${GRB}°°° "
-sleep 1
-clear
-echo " ${YL}SELESAI.. "
+echo " ${BL}SELESAI "
 sleep 2
 clear
 echo " ${GRB}AUTOSCRIPT TERINSTALL "
 sleep 2
 clear
 echo -e " ${GRB} "
-sleep 1
+sleep 0.5
 clear
 echo -e " ${GRB}🅂 "
-sleep 1
+sleep 0.5
 clear
 echo -e " ${GRB}🅂🄴 "
-sleep 1
+sleep 0.5
 clear
 echo -e " ${GRB}🅂🄴🄼 "
-sleep 1
+sleep 0.5
 clear
 echo -e " ${GRB}🅂🄴🄼🄾 "
-sleep 1
+sleep 0.5
 clear
 echo -e " ${GRB}🅂🄴🄼🄾🄶 "
-sleep 1
+sleep 0.5
 clear
 echo -e " ${GRB}🅂🄴🄼🄾🄶🄰 "
-sleep 1
+sleep 0.5
 clear
 echo -e " ${GRB}🅂🄴🄼🄾🄶🄰 🄲 "
-sleep 1
+sleep 0.5
 clear
 echo -e " ${GRB}🅂🄴🄼🄾🄶🄰 🄲🅄 "
-sleep 1
+sleep 0.5
 clear
 echo -e " ${GRB}🅂🄴🄼🄾🄶🄰 🄲🅄🄰 "
-sleep 1
+sleep 0.5
 clear
 echo -e " ${GRB}🅂🄴🄼🄾🄶🄰 🄲🅄🄰🄽 "
-sleep 3
+sleep 2
 clear
+systemctl daemon-reload
+systemctl restart nginx
+systemctl restart xray
 menu
