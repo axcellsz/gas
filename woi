@@ -47,7 +47,8 @@ sleep 2
     echo "${domain}" >/etc/xray/domain
     touch /var/log/xray/access.log
     touch /var/log/xray/error.log
-echo -e " ${GRB} "
+clear
+echo -e " ${YL} "
 sleep 1
 clear
 echo -e " ${YL}° "
