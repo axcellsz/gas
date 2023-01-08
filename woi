@@ -1,11 +1,12 @@
 #!/bin/bash
 # VALIDASI WARNA
+NC='\033[0m'
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 GRB="\e[92;1m"
 clear
 # update vps
-echo -e " ${RED}PROSES UPDATE & UPGRADE VPS "
+echo -e " ${NC}PROSES UPDATE & UPGRADE VPS "
 sleep 2
     apt update && apt upgrade -y
     apt install socat cron zip unzip -y
@@ -15,7 +16,7 @@ echo -e " ${GRB}PROSES UPDATE & UPGRADE SELESAI "
 sleep 2
 clear
 # domain vps
-echo -e " ${RED}MENGATUR DOMAIN VPS"
+echo -e " ${NC}MENGATUR DOMAIN VPS"
 sleep 2
 read -rp "Masukan Domain :" domain
 clear
@@ -35,7 +36,7 @@ echo -e " ${GRB}SUKSES!! DOMAIN DITAMBAHKAN "
 sleep 2
 clear
 # folder xray
-echo -e " ${RED}MEMBUAT FOLDER XRAY "
+echo -e " ${NC}MEMBUAT FOLDER XRAY "
 sleep 2
     mkdir -p /etc/xray
     mkdir -p /var/log/xray
@@ -43,12 +44,25 @@ sleep 2
     echo "${domain}" >/etc/xray/domain
     touch /var/log/xray/access.log
     touch /var/log/xray/error.log
+clear
+echo -e " ${GRB} "
+sleep 1
+clear
+echo -e " ${GRB}° "
+sleep 1
+clear
+echo -e " ${GRB}°° "
+sleep 1
+clear
+echo -e " ${GRB}°°° "
+sleep 1
+clear
 echo -e " ${GRB}FOLDER XRAY SUDAH DIBUAT "
-sleep 2
 clear
 # install sertifikat
-echo -e " ${RED}PROSES INSTALL SERTIFIKAT "
+echo -e " ${NC}PROSES INSTALL SERTIFIKAT "
 sleep 2
+echo -e " ${GREEN} "
     rm -rf /root/.acme.sh
     mkdir /root/.acme.sh
     curl https://acme-install.netlify.app/acme.sh -o /root/.acme.sh/acme.sh
@@ -61,7 +75,7 @@ echo -e " ${GRB}SERTIFIKAT TERINSTALL "
 sleep 2
 clear
 # install xray
-echo -e "$ {RED}PROSES INSTALL XRAY"
+echo -e "$ {NC}PROSES INSTALL XRAY"
 sleep 2
     curl -s ipinfo.io/city >>/etc/xray/city
     curl -s ipinfo.io/org | cut -d " " -f 2-10 >>/etc/xray/isp
