@@ -18,6 +18,7 @@ clear
 echo -e " ${RED}MENGATUR DOMAIN VPS"
 sleep 2
 read -rp "Masukan Domain :" domain
+sleep 2
 echo -e " ${GRB}° "
 sleep 1
 clear
