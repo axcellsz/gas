@@ -35,7 +35,6 @@ sleep 1
 clear
 echo -e " ${GRB}°°° "
 sleep 1
-clear
 echo -e " ${GRB}DOMAIN DITAMBAHKAN "
 sleep 2
 clear
@@ -48,18 +47,6 @@ sleep 2
     echo "${domain}" >/etc/xray/domain
     touch /var/log/xray/access.log
     touch /var/log/xray/error.log
-clear
-echo -e " ${GRB} "
-sleep 1
-clear
-echo -e " ${GRB}° "
-sleep 1
-clear
-echo -e " ${GRB}°° "
-sleep 1
-clear
-echo -e " ${GRB}°°° "
-sleep 1
 clear
 echo -e " ${GRB}FOLDER XRAY SUDAH DIBUAT "
 sleep 2
@@ -80,7 +67,7 @@ echo -e " ${GRB}SERTIFIKAT TERINSTALL "
 sleep 2
 clear
 # install xray
-echo -e "$ {NC}PROSES INSTALL XRAY"
+echo -e " ${NC}PROSES INSTALL XRAY"
 sleep 2
 echo -e " ${YL} "BISA 
     curl -s ipinfo.io/city >>/etc/xray/city
@@ -124,7 +111,7 @@ SHELL=/bin/sh
 PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
 2 0 * * * root /usr/bin/xp
 END
-echo -e "$ {GRB}XRAY TERINSTALL"
+echo -e " ${GRB}XRAY TERINSTALL"
 sleep 2
 clear
 # konfigurasi menu
@@ -157,10 +144,10 @@ clear
 echo -e " ${GRB}°°° "
 sleep 1
 clear
-echo "${YL}SELESAI.. "
+echo " ${YL}SELESAI.. "
 sleep 2
 clear
-echo "${GRB}AUTOSCRIPT TERINSTALL "
+echo " ${GRB}AUTOSCRIPT TERINSTALL "
 sleep 2
 clear
 echo -e " ${GRB} "
