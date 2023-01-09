@@ -159,25 +159,16 @@ systemctl restart xray
 systemctl restart nginx
 service cron restart
 clear
+echo -e "____________________________________"
 echo -e "Remarks : ${user}" | tee -a /etc/log-create-user.log
-echo -e "Domain : ${domain}" | tee -a /etc/log-create-user.log
-echo -e "Port TLS : 443" | tee -a /etc/log-create-user.log
-echo -e "Port none TLS : 80" | tee -a /etc/log-create-user.log
-echo -e "Port  GRPC : 443" | tee -a /etc/log-create-user.log
-echo -e "id : ${uuid}" | tee -a /etc/log-create-user.log
-echo -e "alterId : 0" | tee -a /etc/log-create-user.log
-echo -e "Security : auto" | tee -a /etc/log-create-user.log
-echo -e "Network : WS or gRPC" | tee -a /etc/log-create-user.log
-echo -e "Path TLS : can use anything example :(/free) " | tee -a /etc/log-create-user.log
-echo -e "Path Non TLS : can use anything example :(/free) " | tee -a /etc/log-create-user.log
-echo -e "ServiceName : vmess-grpc" | tee -a /etc/log-create-user.log
 echo -e "Link none TLS :
 ${vmesslink2}" | tee -a /etc/log-create-user.log
 echo -e "Link GRPC :
 ${vmesslink3}" | tee -a /etc/log-create-user.log
-echo -e "Format OpenClash : http://${domain}:81/vmess-$user.txt" | tee -a /etc/log-create-user.log
 echo -e "Expired On : $exp" | tee -a /etc/log-create-user.log
+echo -e "____________________________________"
 echo "" | tee -a /etc/log-create-user.log
-read -n 1 -s -r -p "Press any key to back on menu"
+read -n 1 -s -r -p "SCRIPT BY AXSYSTEM"
+echo -e "____________________________________"
 
 menu
