@@ -159,10 +159,6 @@ systemctl restart xray
 systemctl restart nginx
 service cron restart
 clear
-echo -e "\033[1;93m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\033[0m" | tee -a /etc/log-create-user.log
-echo -e "\e[42mThank You For Using Our Services\E[0m" | tee -a /etc/log-create-user.log
-echo -e "\e[42mXray/Vmess Account              \E[0m" | tee -a /etc/log-create-user.log
-echo -e "\033[1;93m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\033[0m" | tee -a /etc/log-create-user.log
 echo -e "Remarks : ${user}" | tee -a /etc/log-create-user.log
 echo -e "Domain : ${domain}" | tee -a /etc/log-create-user.log
 echo -e "Port TLS : 443" | tee -a /etc/log-create-user.log
@@ -175,15 +171,11 @@ echo -e "Network : WS or gRPC" | tee -a /etc/log-create-user.log
 echo -e "Path TLS : can use anything example :(/free) " | tee -a /etc/log-create-user.log
 echo -e "Path Non TLS : can use anything example :(/free) " | tee -a /etc/log-create-user.log
 echo -e "ServiceName : vmess-grpc" | tee -a /etc/log-create-user.log
-echo -e "\033[1;93m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\033[0m" | tee -a /etc/log-create-user.log
 echo -e "Link none TLS :
 ${vmesslink2}" | tee -a /etc/log-create-user.log
-echo -e "\033[1;93m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\033[0m" | tee -a /etc/log-create-user.log
 echo -e "Link GRPC :
 ${vmesslink3}" | tee -a /etc/log-create-user.log
-echo -e "\033[1;93m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\033[0m" | tee -a /etc/log-create-user.log
 echo -e "Format OpenClash : http://${domain}:81/vmess-$user.txt" | tee -a /etc/log-create-user.log
-echo -e "\033[1;93m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\033[0m" | tee -a /etc/log-create-user.log
 echo -e "Expired On : $exp" | tee -a /etc/log-create-user.log
 echo "" | tee -a /etc/log-create-user.log
 read -n 1 -s -r -p "Press any key to back on menu"
