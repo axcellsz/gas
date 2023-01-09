@@ -52,7 +52,7 @@ VMESS_NON_TLS=`cat<<EOF
       {
       "v": "2",
       "ps": "${user}",
-      "add": "vip.xeileenz.me",
+      "add": "vvip.xeileenz.me",
       "port": "80",
       "id": "${uuid}",
       "aid": "0",
@@ -67,14 +67,14 @@ VMESS_GRPC=`cat<<EOF
       {
       "v": "2",
       "ps": "${user}",
-      "add": "${domain}",
+      "add": "unlimitos.xeileenz.me",
       "port": "443",
       "id": "${uuid}",
       "aid": "0",
       "net": "grpc",
       "path": "vmess-grpc",
       "type": "none",
-      "host": "vip.xeileenz.me",
+      "host": "${domain}",
       "tls": "tls"
 }
 EOF`
