@@ -40,56 +40,56 @@ ${RED}Ax-vpn${NC}(C)${Blue}t.me/davemachine89$NC
 echo -e "\e[1m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\e[0m"
 echo -e " Server Xray Status:" $status_server
 echo -e "\e[1m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\e[0m"
-echo -e " [${grenbo}1${NC}] ${RED}• ${NC}BUAT VMESS SET AKRAB$NC$gray$NC"
-echo -e " [${grenbo}1a${NC}] ${RED}• ${NC}BUAT VMESS SET FLEX$NC$gray$NC"
-echo -e " [${grenbo}1b${NC}] ${RED}• ${NC}BUAT VMESS SET DEFAULT$NC$gray$NC"
-echo -e " [${grenbo}2${NC}] ${RED}• ${NC}HAPUS VMESS$NC$gray$NC"
-echo -e " [${grenbo}3${NC}] ${RED}• ${NC}PERBARUI VMESS$NC$gray$NC"
-echo -e " [${grenbo}4${NC}] ${RED}• ${NC}CEK VMESS$NC$gray$NC"
+echo -e " [${grenbo}b${NC}] ${RED}• ${NC}BUAT VMESS SET AKRAB$NC$gray$NC"
+echo -e " [${grenbo}n${NC}] ${RED}• ${NC}BUAT VMESS SET FLEX$NC$gray$NC"
+echo -e " [${grenbo}m${NC}] ${RED}• ${NC}BUAT VMESS SET DEFAULT$NC$gray$NC"
+echo -e " [${grenbo}1${NC}] ${RED}• ${NC}HAPUS VMESS$NC$gray$NC"
+echo -e " [${grenbo}2${NC}] ${RED}• ${NC}PERBARUI VMESS$NC$gray$NC"
+echo -e " [${grenbo}3${NC}] ${RED}• ${NC}CEK VMESS$NC$gray$NC"
 echo -e "\e[1m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\e[0m"
-echo -e " [${grenbo}5${NC}]${RED}• ${NC}BUAT TROJAN$NC$gray$NC"
-echo -e " [${grenbo}6${NC}]${RED}• ${NC}HAPUS TROJAN$NC$gray$NC"
-echo -e " [${grenbo}7${NC}]${RED}• ${NC}PERBARUI TROJAN$NC$gray$NC"
-echo -e " [${grenbo}8${NC}]${RED}• ${NC}CEK TROJAN$NC$gray$NC"
+echo -e " [${grenbo}4${NC}]${RED}• ${NC}BUAT TROJAN$NC$gray$NC"
+echo -e " [${grenbo}5${NC}]${RED}• ${NC}HAPUS TROJAN$NC$gray$NC"
+echo -e " [${grenbo}6${NC}]${RED}• ${NC}PERBARUI TROJAN$NC$gray$NC"
+echo -e " [${grenbo}7${NC}]${RED}• ${NC}CEK TROJAN$NC$gray$NC"
 echo -e "\e[1m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\e[0m"
-echo -e " [${grenbo}9${NC}]${RED}• ${NC}RESTART XRAY$NC$gray$NC"
+echo -e " [${grenbo}8${NC}]${RED}• ${NC}RESTART XRAY$NC$gray$NC"
 echo -e " [${grenbo}z${NC}]${RED}• ${NC}SETTING$NC$gray$NC"
 echo -e " [${grenbo}x${NC}]${RED}• ${NC}REBOOT VPS$NC$gray$NC"
-echo -e " [${grenbo}v${NC}]${RED}• ${NC}EXIT$NC$gray$NC"
+echo -e " [${grenbo}c${NC}]${RED}• ${NC}EXIT$NC$gray$NC"
 echo -e "\e[1m━━━━━━━━━━━━━━━━━━━━━━━\e[0m"
 read -p "Select From Options : " menu
 case $menu in
-    1)
+    b)
         axb
     ;;
-    1a)
+    n)
         flx
     ;;
-    1b)
+    m)
         add-ws
     ;;
-    2)
+    1)
         del-ws
     ;;
-    3)
+    2)
         renew-ws
     ;;
-    4)
+    3)
         cek-ws
     ;;
-    5)
+    4)
         add-tr
     ;;
-    6)
+    5)
         del-tr
     ;;
-    7)
+    6)
         renew-tr
     ;;
-    8)
+    7)
         cek-tr
     ;;
-    9)
+    8)
 systemctl daemon-reload
 systemctl restart nginx
 systemctl restart xray
@@ -104,7 +104,7 @@ menu
     x)
         reboot
     ;;
-    v)
+    c)
         exit
     ;;
     *)
