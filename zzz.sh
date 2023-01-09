@@ -175,9 +175,6 @@ echo -e "Path TLS : can use anything example :(/free) " | tee -a /etc/log-create
 echo -e "Path Non TLS : can use anything example :(/free) " | tee -a /etc/log-create-user.log
 echo -e "ServiceName : vmess-grpc" | tee -a /etc/log-create-user.log
 echo -e "\033[1;93m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\033[0m" | tee -a /etc/log-create-user.log
-echo -e "Link TLS :
-${vmesslink1}" | tee -a /etc/log-create-user.log
-echo -e "\033[1;93m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\033[0m" | tee -a /etc/log-create-user.log
 echo -e "Link none TLS :
 ${vmesslink2}" | tee -a /etc/log-create-user.log
 echo -e "\033[1;93m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\033[0m" | tee -a /etc/log-create-user.log
