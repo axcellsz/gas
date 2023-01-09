@@ -1,4 +1,3 @@
-
 #!/bin/bash
 red() { echo -e "\\033[32;1m${*}\\033[0m"; }
 domain=$(cat /etc/xray/domain)
@@ -160,7 +159,9 @@ systemctl restart nginx
 service cron restart
 clear
 echo -e "============================"
-echo -e "Remarks : ${user}" | tee -a /etc/log-create-user.log
+echo -e "Username   : ${user}" | tee -a /etc/log-create-user.log
+echo -e "Expired On : $exp" | tee -a /etc/log-create-user.log
+echo -e "Script By  : Axsystem" | tee -a /etc/log-create-user.log
 echo -e "============================"
 echo -e "Link none TLS :
 ${vmesslink2}" | tee -a /etc/log-create-user.log
@@ -168,10 +169,7 @@ echo -e "============================"
 echo -e "Link GRPC :
 ${vmesslink3}" | tee -a /etc/log-create-user.log
 echo -e "============================"
-echo -e "Expired On : $exp" | tee -a /etc/log-create-user.log
-echo -e "Script By  : AXSYSTEM" | tee -a /etc/log-create-user.log
-echo -e "============================"
 echo "" | tee -a /etc/log-create-user.log
-read -n 1 -s -r -p "Press any key to back on menu"
+read -n 1 -s -r -p "Powered by Xeileencell"
 
 menu
