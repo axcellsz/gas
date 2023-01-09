@@ -159,16 +159,18 @@ systemctl restart xray
 systemctl restart nginx
 service cron restart
 clear
-echo -e "____________________________________"
+echo -e "============================"
 echo -e "Remarks : ${user}" | tee -a /etc/log-create-user.log
+echo -e "============================"
 echo -e "Link none TLS :
 ${vmesslink2}" | tee -a /etc/log-create-user.log
+echo -e "============================"
 echo -e "Link GRPC :
 ${vmesslink3}" | tee -a /etc/log-create-user.log
+echo -e "============================"
 echo -e "Expired On : $exp" | tee -a /etc/log-create-user.log
-echo -e "____________________________________"
+echo -e "Script By  : AXSYSTEM
+echo -e "============================"
 echo "" | tee -a /etc/log-create-user.log
-read -n 1 -s -r -p "SCRIPT BY AXSYSTEM"
-echo -e "____________________________________"
 
 menu
