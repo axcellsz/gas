@@ -40,9 +40,9 @@ ${RED}Ax-vpn${NC}(C)${Blue}t.me/davemachine89$NC
 echo -e "\e[1m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\e[0m"
 echo -e " Server Xray Status:" $status_server
 echo -e "\e[1m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\e[0m"
-echo -e " [${grenbo}b${NC}] ${RED}• ${NC}BUAT VMESS SET AKRAB$NC$gray$NC"
-echo -e " [${grenbo}n${NC}] ${RED}• ${NC}BUAT VMESS SET FLEX$NC$gray$NC"
-echo -e " [${grenbo}m${NC}] ${RED}• ${NC}BUAT VMESS SET DEFAULT$NC$gray$NC"
+echo -e " [${grenbo}v${NC}] ${RED}• ${NC}BUAT VMESS SET AKRAB$NC$gray$NC"
+echo -e " [${grenbo}b${NC}] ${RED}• ${NC}BUAT VMESS SET FLEX$NC$gray$NC"
+echo -e " [${grenbo}n${NC}] ${RED}• ${NC}BUAT VMESS SET DEFAULT$NC$gray$NC"
 echo -e " [${grenbo}1${NC}] ${RED}• ${NC}HAPUS VMESS$NC$gray$NC"
 echo -e " [${grenbo}2${NC}] ${RED}• ${NC}PERBARUI VMESS$NC$gray$NC"
 echo -e " [${grenbo}3${NC}] ${RED}• ${NC}CEK VMESS$NC$gray$NC"
@@ -59,13 +59,13 @@ echo -e " [${grenbo}c${NC}]${RED}• ${NC}EXIT$NC$gray$NC"
 echo -e "\e[1m━━━━━━━━━━━━━━━━━━━━━━━\e[0m"
 read -p "Select From Options : " menu
 case $menu in
-    b)
+    v)
         axb
     ;;
-    n)
+    b)
         flx
     ;;
-    m)
+    n)
         add-ws
     ;;
     1)
