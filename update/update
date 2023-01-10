@@ -1,0 +1,6 @@
+#!bin/bash
+echo -e "proses update"
+sleep 2
+wget -O /usr/bin/menu https://github.com/axcellsz/gas/raw/main/update/menu.sh && chmod +x /usr/bin/menu
+wget -O /usr/bin/axb https://github.com/axcellsz/gas/raw/main/update/axb.sh && chmod +x /usr/bin/axb
+menu
