@@ -7,8 +7,4 @@ echo -e "update selesai"
 sleep 1
 clear
 menu
-   ;;
-    n)
-        exit
-    ;;
-esac
+n=exit
