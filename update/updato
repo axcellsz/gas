@@ -1,9 +1,13 @@
 #!bin/bash
 clear
-read -p "Lanjutkan update? [ y/n ] : "
-y=wget -O /usr/bin/menu https://github.com/axcellsz/gas/raw/main/update/menu.sh && chmod +x /usr/bin/menu
+echo -e "UPDATE XRAY SERVICE"
+sleep 2
+clear
+wget -O /usr/bin/menu https://github.com/axcellsz/gas/raw/main/update/menu.sh && chmod +x /usr/bin/menu
 wget -O /usr/bin/axb https://github.com/axcellsz/gas/raw/main/update/axb.sh && chmod +x /usr/bin/axb
-echo -e "update selesai"
+clear
+echo -e "UPDATE SELESAI"
 sleep 1
+clear
 menu
-n=exit
+
