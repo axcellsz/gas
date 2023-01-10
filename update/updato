@@ -5,6 +5,5 @@ y=wget -O /usr/bin/menu https://github.com/axcellsz/gas/raw/main/update/menu.sh 
 wget -O /usr/bin/axb https://github.com/axcellsz/gas/raw/main/update/axb.sh && chmod +x /usr/bin/axb
 echo -e "update selesai"
 sleep 1
-clear
 menu
 n=exit
