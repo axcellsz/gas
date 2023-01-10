@@ -30,8 +30,8 @@ echo "║ 15.Info Script            ┃                                      ║
 echo "║ 16.Auto Pointing Subdomain┃                                      ║"
 echo "║ 17.Cek Semua Layanan Port ┃ Check All Port Service               ║"
 echo "╚═════════════════════════════════════════════════════════════════╝" 
-read -p "     Select From Options [1-69 or x] :  " xmenu
-case $xmenu in 
+read -p "     Select From Options [1-69 or x] :  " bell
+case $bell in 
 1)
 exit
 ;;
@@ -45,7 +45,7 @@ reboot
 reboot
 ;;
 5)
-load
+bell
 ;;
 6)
 updatecore
