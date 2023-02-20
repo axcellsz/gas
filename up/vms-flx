@@ -29,7 +29,7 @@ sed -i '/#vmessgrpc$/a\### '"$user $exp"'\
 VMESS_WS=`cat<<EOF
       {
       "v": "2",
-      "ps": "${user}",
+      "ps": "${user} [SSL 60GB]",
       "add": "${domain}",
       "port": "443",
       "id": "${uuid}",
@@ -41,24 +41,23 @@ VMESS_WS=`cat<<EOF
       "tls": "tls"
 }
 EOF`
-VMESS_NON_TLS=`cat<<EOF
+VMESS_GRPC=`cat<<EOF
       {
       "v": "2",
-      "ps": "${user}",
-      "add": "zendesk1.grabtaxi.com",
-      "port": "80",
+      "ps": "${user} [GRPC 1GB]",
+      "add": "satu-gb.xeileenz.me",
+      "port": "443",
       "id": "${uuid}",
       "aid": "0",
-      "net": "ws",
-      "path": "/vmess",
+      "net": "grpc",
+      "path": "vmess-grpc",
       "type": "none",
       "host": "${domain}",
-      "tls": "none"
+      "tls": "tls"
 }
 EOF`
 vmesslink1="vmess://$(echo $VMESS_WS | base64 -w 0)"
-vmesslink2="vmess://$(echo $VMESS_NON_TLS | base64 -w 0)"
-vmesslink3="vmess://$(echo $VMESS_GRPC | base64 -w 0)"
+vmesslink2="vmess://$(echo $VMESS_GRPC | base64 -w 0)"
 systemctl restart xray
 systemctl restart nginx
 service cron restart
