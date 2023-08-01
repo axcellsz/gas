@@ -6,11 +6,13 @@ clear
     apt install curl
 # domain
 read -rp "Masukan Domain :" domain
+read -rp "Masukan ID Server :" idsq
 # buat folder xray
     mkdir -p /etc/xray
     mkdir -p /var/log/xray
     chmod +x /var/log/xray
     echo "${domain}" >/etc/xray/domain
+    echo "${idsq}" >/etc/xray/idsq
     touch /var/log/xray/access.log
     touch /var/log/xray/error.log
 # install sertifikat
