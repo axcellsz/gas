@@ -4,13 +4,13 @@ idsq=$(cat /etc/xray/idsq)
 clear
 until [[ $user =~ ^[a-zA-Z0-9_]+$ && ${CLIENT_EXISTS} == '0' ]]; do
 clear
-echo -e "BUAT AKUN VMESS XL FLEX"
+echo -e "BUAT AKUN VMESS XL VIDIO"
 echo -e " "    
 read -rp "User: " -e user
 CLIENT_EXISTS=$(grep -w $user /etc/xray/config.json | wc -l)
 if [[ ${CLIENT_EXISTS} == '1' ]]; then
 clear
-echo -e "BUAT AKUN VMESS XL FLEX"
+echo -e "BUAT AKUN VMESS XL VIDIO"
 echo ""
 echo "Nama Sudah Digunakan"
 echo " "
@@ -27,26 +27,11 @@ sed -i '/#vmess$/a\### '"$user $exp"'\
 exp=`date -d "$masaaktif days" +"%Y-%m-%d"`
 sed -i '/#vmessgrpc$/a\### '"$user $exp"'\
 },{"id": "'""$uuid""'","alterId": '"0"',"email": "'""$user""'"' /etc/xray/config.json
-VMESS_WS=`cat<<EOF
-      {
-      "v": "2",
-      "ps": "[${idsq}] ${user} [SSL 60GB]",
-      "add": "${domain}",
-      "port": "443",
-      "id": "${uuid}",
-      "aid": "0",
-      "net": "ws",
-      "path": "/vmess",
-      "type": "none",
-      "host": "media.fcgk35-1.fna.whatsapp.net",
-      "tls": "tls"
-}
-EOF`
 VMESS_GRPC=`cat<<EOF
       {
       "v": "2",
-      "ps": "[${idsq}] ${user} [GRPC 1GB]",
-      "add": "satu-gb.xeileenz.me",
+      "ps": "[${idsq}] ${user} [UNLIMITED]",
+      "add": "path.axnet.me",
       "port": "443",
       "id": "${uuid}",
       "aid": "0",
@@ -57,7 +42,6 @@ VMESS_GRPC=`cat<<EOF
       "tls": "tls"
 }
 EOF`
-vmesslink1="vmess://$(echo $VMESS_WS | base64 -w 0)"
 vmesslink2="vmess://$(echo $VMESS_GRPC | base64 -w 0)"
 systemctl restart xray
 systemctl restart nginx
@@ -69,10 +53,7 @@ echo -e "Server     : $idsq" | tee -a /etc/log-create-user.log
 echo -e "Expired On : $exp" | tee -a /etc/log-create-user.log
 echo -e "Script By  : Axsystem" | tee -a /etc/log-create-user.log
 echo -e "============================"
-echo -e "Link TLS :
-${vmesslink1}" | tee -a /etc/log-create-user.log
-echo -e "============================"
-echo -e "Link none TLS :
+echo -e "Link GRPC :
 ${vmesslink2}" | tee -a /etc/log-create-user.log
 echo -e "============================"
 echo "" | tee -a /etc/log-create-user.log
