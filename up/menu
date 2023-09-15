@@ -63,7 +63,7 @@ case $menu in
     m)
         add-video 
     ;;
-v)
+    v)
         add-akrab 
     ;;
     b)
