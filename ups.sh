@@ -2,9 +2,9 @@
 clear
 # update
 
-rm -rf /usr/bin/vms-flx
+rm -rf /usr/bin/add-vidio
 rm -rf /usr/bin/menu
-wget -O /usr/bin/vms-flx https://github.com/axcellsz/gas/raw/main/up/vms-flx && chmod +x /usr/bin/vms-flx
+wget -O /usr/bin/add-vidio https://github.com/axcellsz/gas/raw/main/up/add-vidio && chmod +x /usr/bin/add-vidio
 wget -O /usr/bin/menu https://github.com/axcellsz/gas/raw/main/up/menu && chmod +x /usr/bin/menu
 
 
