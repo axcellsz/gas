@@ -10,7 +10,7 @@ read -rp "User: " -e user
 CLIENT_EXISTS=$(grep -w $user /etc/xray/config.json | wc -l)
 if [[ ${CLIENT_EXISTS} == '1' ]]; then
 clear
-echo -e "BUAT AKUN VMESS DEFAULT"
+echo -e "BUAT AKUN VMESS XL FLEX"
 echo ""
 echo "Nama Sudah Digunakan"
 echo " "
@@ -27,10 +27,10 @@ sed -i '/#vmess$/a\### '"$user $exp"'\
 exp=`date -d "$masaaktif days" +"%Y-%m-%d"`
 sed -i '/#vmessgrpc$/a\### '"$user $exp"'\
 },{"id": "'""$uuid""'","alterId": '"0"',"email": "'""$user""'"' /etc/xray/config.json
-VMESS_TLS=`cat<<EOF
+VMESS_WS=`cat<<EOF
       {
       "v": "2",
-      "ps": "${user}",
+      "ps": "[${idsq}] ${user} [TLS]",
       "add": "${domain}",
       "port": "443",
       "id": "${uuid}",
@@ -45,7 +45,7 @@ EOF`
 VMESS_NON_TLS=`cat<<EOF
       {
       "v": "2",
-      "ps": "${user}",
+      "ps": "[${idsq}] ${user} [NTLS]",
       "add": "${domain}",
       "port": "80",
       "id": "${uuid}",
@@ -60,7 +60,7 @@ EOF`
 VMESS_GRPC=`cat<<EOF
       {
       "v": "2",
-      "ps": "${user}",
+      "ps": "[${idsq}] ${user} [GRPC]",
       "add": "${domain}",
       "port": "443",
       "id": "${uuid}",
@@ -72,7 +72,7 @@ VMESS_GRPC=`cat<<EOF
       "tls": "tls"
 }
 EOF`
-vmesslink1="vmess://$(echo $VMESS_TLS | base64 -w 0)"
+vmesslink1="vmess://$(echo $VMESS_WS | base64 -w 0)"
 vmesslink2="vmess://$(echo $VMESS_NON_TLS | base64 -w 0)"
 vmesslink3="vmess://$(echo $VMESS_GRPC | base64 -w 0)"
 systemctl restart xray
