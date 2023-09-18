@@ -30,7 +30,7 @@ sed -i '/#vmessgrpc$/a\### '"$user $exp"'\
 VMESS_GRPC=`cat<<EOF
       {
       "v": "2",
-      "ps": "[${idsq}] ${user} [unlimited]",
+      "ps": "${user} [unlimited] [${idsq}] ",
       "add": "path.axnet.me",
       "port": "443",
       "id": "${uuid}",
