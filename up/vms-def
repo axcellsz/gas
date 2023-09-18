@@ -1,5 +1,6 @@
 #!/bin/bash
 domain=$(cat /etc/xray/domain)
+idsq=$(cat /etc/xray/idsq)
 clear
 until [[ $user =~ ^[a-zA-Z0-9_]+$ && ${CLIENT_EXISTS} == '0' ]]; do
 clear
@@ -9,7 +10,7 @@ read -rp "User: " -e user
 CLIENT_EXISTS=$(grep -w $user /etc/xray/config.json | wc -l)
 if [[ ${CLIENT_EXISTS} == '1' ]]; then
 clear
-echo -e "BUAT AKUN VMESS XL FLEX"
+echo -e "BUAT AKUN VMESS DEFAULT"
 echo ""
 echo "Nama Sudah Digunakan"
 echo " "
@@ -26,7 +27,7 @@ sed -i '/#vmess$/a\### '"$user $exp"'\
 exp=`date -d "$masaaktif days" +"%Y-%m-%d"`
 sed -i '/#vmessgrpc$/a\### '"$user $exp"'\
 },{"id": "'""$uuid""'","alterId": '"0"',"email": "'""$user""'"' /etc/xray/config.json
-VMESS_WS=`cat<<EOF
+VMESS_TLS=`cat<<EOF
       {
       "v": "2",
       "ps": "${user}",
@@ -71,7 +72,7 @@ VMESS_GRPC=`cat<<EOF
       "tls": "tls"
 }
 EOF`
-vmesslink1="vmess://$(echo $VMESS_WS | base64 -w 0)"
+vmesslink1="vmess://$(echo $VMESS_TLS | base64 -w 0)"
 vmesslink2="vmess://$(echo $VMESS_NON_TLS | base64 -w 0)"
 vmesslink3="vmess://$(echo $VMESS_GRPC | base64 -w 0)"
 systemctl restart xray
