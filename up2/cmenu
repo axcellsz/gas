@@ -41,15 +41,6 @@ case $menu in
     7)
         cek-tr
     ;;
-    8)
-systemctl daemon-reload
-systemctl restart nginx
-systemctl restart xray
-echo -e " ${grenbo}SELESAI.. "
-sleep 2
-clear
-menu
-    ;;
     z)
         set-menu
     ;;
