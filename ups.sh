@@ -5,12 +5,12 @@ rm -rf /usr/bin/cmenu
 #rm -rf /usr/bin/add-vidio
 #rm -rf /usr/bin/menu
 #wget -O /usr/bin/add-vidio https://github.com/axcellsz/gas/raw/main/up/add-vidio && chmod +x /usr/bin/add-vidio
-#wget -O /usr/bin/menu https://github.com/axcellsz/gas/raw/main/up2/menu && chmod +x /usr/bin/menu
+wget -O /usr/bin/xmenu https://github.com/axcellsz/gas/raw/main/up2/xmenu && chmod +x /usr/bin/xmenu
 #rm -rf /usr/bin/vms-def
 #wget -O /usr/bin/vms-def https://github.com/axcellsz/gas/raw/main/up2/vms-def && chmod +x /usr/bin/vms-def
 #wget -O /usr/bin/vms-flx https://github.com/axcellsz/gas/raw/main/up/vms-flx && chmod +x /usr/bin/vms-flx
 #wget -O /usr/bin/ad-shws https://github.com/axcellsz/gas/raw/main/up/ad-shws && chmod +x /usr/bin/ad-shws
-wget -O /usr/bin/cmenu https://github.com/axcellsz/gas/raw/main/up2/cmenu && chmod +x /usr/bin/cmenu
+#wget -O /usr/bin/cmenu https://github.com/axcellsz/gas/raw/main/up2/cmenu && chmod +x /usr/bin/cmenu
 
 
 # update
