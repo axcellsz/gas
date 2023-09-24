@@ -1,7 +1,7 @@
 !#/bin/bash
 clear
 # update
-
+rm -rf /usr/bin/cmenu
 #rm -rf /usr/bin/add-vidio
 #rm -rf /usr/bin/menu
 #wget -O /usr/bin/add-vidio https://github.com/axcellsz/gas/raw/main/up/add-vidio && chmod +x /usr/bin/add-vidio
