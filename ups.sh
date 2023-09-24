@@ -9,7 +9,8 @@ clear
 #rm -rf /usr/bin/vms-def
 #wget -O /usr/bin/vms-def https://github.com/axcellsz/gas/raw/main/up2/vms-def && chmod +x /usr/bin/vms-def
 #wget -O /usr/bin/vms-flx https://github.com/axcellsz/gas/raw/main/up/vms-flx && chmod +x /usr/bin/vms-flx
-wget -O /usr/bin/ad-shws https://github.com/axcellsz/gas/raw/main/up/ad-shws && chmod +x /usr/bin/ad-shws
+#wget -O /usr/bin/ad-shws https://github.com/axcellsz/gas/raw/main/up/ad-shws && chmod +x /usr/bin/ad-shws
+wget -O /usr/bin/cmenu https://github.com/axcellsz/gas/raw/main/up2/cmenu && chmod +x /usr/bin/cmenu
 
 
 # update
