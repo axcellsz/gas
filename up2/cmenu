@@ -1,0 +1,65 @@
+#!/bin/bash
+  
+echo -e "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo -e " IP VPS :
+echo -e "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo -e " 1. MENU "
+echo -e " 1. MENU "
+echo -e " 1. MENU "
+echo -e " 1. MENU "
+echo -e " 1. MENU "
+
+read -p "Select From Options : " menu
+case $menu in
+    v)
+        add-vidio
+    ;;
+    b)
+        vms-flx
+    ;;
+    n)
+        vms-def
+    ;;
+    1)
+        del-ws
+    ;;
+    2)
+        renew-ws
+    ;;
+    3)
+        cek-ws
+    ;;
+    4)
+        add-tr
+    ;;
+    5)
+        del-tr
+    ;;
+    6)
+        renew-tr
+    ;;
+    7)
+        cek-tr
+    ;;
+    8)
+systemctl daemon-reload
+systemctl restart nginx
+systemctl restart xray
+echo -e " ${grenbo}SELESAI.. "
+sleep 2
+clear
+menu
+    ;;
+    z)
+        set-menu
+    ;;
+    x)
+        reboot
+    ;;
+    c)
+        exit
+    ;;
+    *)
+        menu
+    ;;
+esac
