@@ -8,7 +8,7 @@ clear
 #wget -O /usr/bin/menu https://github.com/axcellsz/gas/raw/main/up2/menu && chmod +x /usr/bin/menu
 #rm -rf /usr/bin/vms-def
 wget -O /usr/bin/vms-def https://github.com/axcellsz/gas/raw/main/up2/vms-def && chmod +x /usr/bin/vms-def
-wget -O /usr/bin/vms-flx https://github.com/axcellsz/gas/raw/main/up2/vms-flx && chmod +x /usr/bin/vms-flx
+wget -O /usr/bin/vms-flx https://github.com/axcellsz/gas/raw/main/up/vms-flx && chmod +x /usr/bin/vms-flx
 
 
 # update
