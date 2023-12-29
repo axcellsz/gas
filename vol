@@ -6,14 +6,15 @@ clear
     apt install curl
 # domain
 read -rp "Masukan Domain :" domain
+
 # buat folder xray
-  #  mkdir -p /etc/xray
- #   mkdir -p /var/log/xray
-#    chmod +x /var/log/xray
+    mkdir -p /etc/xray
+    mkdir -p /var/log/xray
+    chmod +x /var/log/xray
     echo "${domain}" >/etc/xray/domain
-#    echo "${idsq}" >/etc/xray/idsq
- #   touch /var/log/xray/access.log
- #   touch /var/log/xray/error.log
+    
+    touch /var/log/xray/access.log
+    touch /var/log/xray/error.log
 # install sertifikat
     rm -rf /root/.acme.sh
     mkdir /root/.acme.sh
@@ -23,4 +24,5 @@ read -rp "Masukan Domain :" domain
     /root/.acme.sh/acme.sh --set-default-ca --server letsencrypt
     /root/.acme.sh/acme.sh --issue -d $domain --standalone -k ec-256
     ~/.acme.sh/acme.sh --installcert -d $domain --fullchainpath /etc/xray/xray.crt --keypath /etc/xray/xray.key --ecc
-# install xray
+    
+clear
