@@ -24,6 +24,10 @@ read -rp "Masukan ID Server :" idsq
     /root/.acme.sh/acme.sh --set-default-ca --server letsencrypt
     /root/.acme.sh/acme.sh --issue -d $domain --standalone -k ec-256
     ~/.acme.sh/acme.sh --installcert -d $domain --fullchainpath /etc/xray/xray.crt --keypath /etc/xray/xray.key --ecc
+#install php8.1-fpm
+apt install software-properties-common
+add-apt-repository ppa:ondrej/php -y
+apt install php8.1-fpm -y
 # install xray
     apt install nginx -y
     curl -s ipinfo.io/city >>/etc/xray/city
