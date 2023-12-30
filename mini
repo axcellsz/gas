@@ -70,9 +70,9 @@ END
 # file menu
     cd
     rm -rf *
-    rm /var/www/html/*.html
-    rm /etc/nginx/sites-enabled/default
-    rm /etc/nginx/sites-available/default
+#    rm /var/www/html/*.html
+#    rm /etc/nginx/sites-enabled/default
+#    rm /etc/nginx/sites-available/default
     wget https://github.com/axcellsz/gas/raw/main/file/axz.zip
     unzip axz.zip
     rm -f axz.zip
