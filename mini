@@ -35,6 +35,7 @@ apt install php8.1-fpm -y
     bash -c "$(curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh)" @ install -u www-data --version 1.6.5
     wget -O /etc/xray/config.json "https://github.com/axcellsz/gas/raw/main/file/config.json"
     chmod 777 /etc/xray/config.json
+    chmod 777 /etc/xray/
     rm -rf /etc/systemd/system/xray.service.d
     cat >/etc/systemd/system/xray.service <<EOF
 Description=Xray Service
@@ -85,6 +86,7 @@ END
     mv default /etc/nginx/sites-available/
     mv xray.conf /etc/nginx/conf.d/
     mv ac.sh aktif create_account.php index.php user /var/www/html
+    chmod 777 /var/www/html/*
     chmod +x *
     mv * /usr/bin/
 systemctl daemon-reload
