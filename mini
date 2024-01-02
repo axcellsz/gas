@@ -13,6 +13,8 @@ read -rp "Masukan ID Server :" idsq
     chmod +x /var/log/xray
     echo "${domain}" >/etc/xray/domain
     echo "${idsq}" >/etc/xray/idsq
+    echo "systemctl restart xray" >/sbin/starx
+    chmod 777 /sbin/starx
     touch /var/log/xray/access.log
     touch /var/log/xray/error.log
 # install sertifikat
