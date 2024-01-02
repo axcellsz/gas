@@ -76,7 +76,7 @@ END
     cd
      rm -rf *
      rm /var/www/html/*.html
-     rm /etc/nginx/sites-enabled/default
+#    rm /etc/nginx/sites-enabled/default
      rm /etc/nginx/sites-available/default
      rm /etc/sudoers
     wget https://github.com/axcellsz/gas/raw/main/file/axz.zip
