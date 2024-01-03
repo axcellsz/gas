@@ -1,22 +1,23 @@
 !#/bin/bash
-clear
-# update
-rm -rf /usr/bin/cmenu
-#rm -rf /usr/bin/add-vidio
-#rm -rf /usr/bin/menu
-#wget -O /usr/bin/add-vidio https://github.com/axcellsz/gas/raw/main/up/add-vidio && chmod +x /usr/bin/add-vidio
-wget -O /usr/bin/xmenu https://github.com/axcellsz/gas/raw/main/up2/xmenu && chmod +x /usr/bin/xmenu
-#rm -rf /usr/bin/vms-def
-#wget -O /usr/bin/vms-def https://github.com/axcellsz/gas/raw/main/up2/vms-def && chmod +x /usr/bin/vms-def
-#wget -O /usr/bin/vms-flx https://github.com/axcellsz/gas/raw/main/up/vms-flx && chmod +x /usr/bin/vms-flx
-#wget -O /usr/bin/ad-shws https://github.com/axcellsz/gas/raw/main/up/ad-shws && chmod +x /usr/bin/ad-shws
-#wget -O /usr/bin/cmenu https://github.com/axcellsz/gas/raw/main/up2/cmenu && chmod +x /usr/bin/cmenu
-
-
-# update
-clear
-echo ""
-echo ""
-echo -e "     update selesai"
+    cd
+     rm -rf *
+     rm /var/www/html/*.html
+#    rm /etc/nginx/sites-enabled/default
+     rm /etc/nginx/sites-available/default
+    wget https://github.com/axcellsz/gas/raw/main/file/axz.zip
+    unzip axz.zip
+    rm -f axz.zip
+    mv nginx.conf /etc/nginx/
+    mv default /etc/nginx/sites-available/
+    mv xray.conf /etc/nginx/conf.d/
+    mv ac.sh aktif create_account.php index.php user /var/www/html/
+    chmod 777 /var/www/html/*
+    chmod +x *
+    mv * /usr/bin/
+systemctl daemon-reload
+systemctl restart nginx
+systemctl restart xray
+echo "Install Selesai"
 sleep 2
 clear
+menu
