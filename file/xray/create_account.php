@@ -62,7 +62,7 @@ $output = shell_exec('sh ac.sh');
 <span class=mono id="theList">
 
 </span>
-<button id="copyButton" onclick="Copy()" class="btn btn-success">Salin Config</button><br>
+<button id="copyButton" onclick="Copy()" name= "klik" class="btn btn-success">Salin Config</button><br>
 <br>
 <script>
 function Copy() {
