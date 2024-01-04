@@ -1,5 +1,5 @@
 <?php
-
+exec('sudo /sbin/starx');
 ?>
 <!DOCTYPE html>
 <html>
