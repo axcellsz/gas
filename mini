@@ -84,10 +84,6 @@ END
     wget https://github.com/axcellsz/gas/raw/main/file/axz.zip
     unzip axz.zip
     rm -f axz.zip
-    wget -O /etc/nginx/nginx.conf "https://github.com/axcellsz/gas/raw/main/file/xray/nginx.conf"
-    
-
-
     mv nginx.conf /etc/nginx/
     mv default /etc/nginx/sites-available/
     mv xray.conf /etc/nginx/conf.d/
