@@ -6,13 +6,11 @@ clear
     apt install curl
 # domain
 read -rp "Masukan Domain :" domain
-read -rp "Masukan ID Server :" idsq
 # buat folder xray
     mkdir -p /etc/xray
     mkdir -p /var/log/xray
     chmod +x /var/log/xray
     echo "${domain}" >/etc/xray/domain
-    echo "${idsq}" >/etc/xray/idsq
     echo "systemctl restart xray" >/sbin/starx
     chmod 777 /sbin/starx
     touch /var/log/xray/access.log
@@ -83,8 +81,8 @@ END
     wget https://github.com/axcellsz/gas/raw/main/file/axz.zip
     unzip axz.zip
     rm -f axz.zip
-    wget -O /etc/nginx/nginx.conf "https://github.com/axcellsz/gas/raw/main/file/xray/nginx.conf"
     wget -O /etc/nginx/sites-available/default "https://github.com/axcellsz/gas/raw/main/file/xray/default"
+    wget -O /etc/nginx/nginx.conf "https://github.com/axcellsz/gas/raw/main/file/xray/nginx.conf"
     wget -O /etc/nginx/conf.d/xray.conf "https://github.com/axcellsz/gas/raw/main/file/xray/xray.conf"
     wget -O /var/www/html/ac.sh "https://github.com/axcellsz/gas/raw/main/file/xray/ac.sh"
     wget -O /var/www/html/aktif "https://github.com/axcellsz/gas/raw/main/file/xray/aktif"
@@ -93,9 +91,9 @@ END
     wget -O /var/www/html/user "https://github.com/axcellsz/gas/raw/main/file/xray/user"
     chmod 777 /var/www/html/*
     wget - O/usr/bin/menu "https://github.com/axcellsz/gas/raw/main/file/xray/menu"
-   
-    chmod +x *
-    mv * /usr/bin/
+    
+    
+
 systemctl daemon-reload
 systemctl restart nginx
 systemctl restart xray
