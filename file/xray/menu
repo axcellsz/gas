@@ -40,56 +40,17 @@ ${RED}Ax-vpn${NC}(C)${Blue}t.me/davemachine89$NC
 echo -e "\e[1m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\e[0m"
 echo -e " Server Xray Status:" $status_server
 echo -e "\e[1m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\e[0m"
-echo -e " [${grenbo}v${NC}] ${RED}• ${NC}VMESS VIDIO$NC$gray$NC"
-echo -e " [${grenbo}b${NC}] ${RED}• ${NC}VMESS FLEX$NC$gray$NC"
-echo -e " [${grenbo}n${NC}] ${RED}• ${NC}VMESS DEFAULT$NC$gray$NC"
-echo -e " [${grenbo}1${NC}] ${RED}• ${NC}HAPUS VMESS$NC$gray$NC"
-echo -e " [${grenbo}2${NC}] ${RED}• ${NC}PERBARUI VMESS$NC$gray$NC"
-echo -e " [${grenbo}3${NC}] ${RED}• ${NC}CEK VMESS$NC$gray$NC"
-echo -e "\e[1m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\e[0m"
-echo -e " [${grenbo}4${NC}]${RED}• ${NC}TROJAN$NC$gray$NC"
-echo -e " [${grenbo}5${NC}]${RED}• ${NC}HAPUS TROJAN$NC$gray$NC"
-echo -e " [${grenbo}6${NC}]${RED}• ${NC}PERBARUI TROJAN$NC$gray$NC"
-echo -e " [${grenbo}7${NC}]${RED}• ${NC}CEK TROJAN$NC$gray$NC"
-echo -e "\e[1m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\e[0m"
-echo -e " [${grenbo}8${NC}]${RED}• ${NC}RESTART XRAY$NC$gray$NC"
-echo -e " [${grenbo}z${NC}]${RED}• ${NC}SETTING$NC$gray$NC"
-echo -e " [${grenbo}x${NC}]${RED}• ${NC}REBOOT VPS$NC$gray$NC"
-echo -e " [${grenbo}c${NC}]${RED}• ${NC}EXIT$NC$gray$NC"
+echo -e " [${grenbo}z${NC}]${RED}• ${NC}RESTART XRAY TUNNEL$NC$gray$NC"
+echo -e " [${grenbo}x${NC}]${RED}• ${NC}RESTART XRAY$NC$gray$NC"
+echo -e " [${grenbo}c${NC}]${RED}• ${NC}STOP XRAY$NC$gray$NC"
+echo -e " [${grenbo}v${NC}]${RED}• ${NC}STAR XRAY$NC$gray$NC"
+echo -e " [${grenbo}b${NC}]${RED}• ${NC}RESTART NGINX$NC$gray$NC"
+echo -e " [${grenbo}n${NC}]${RED}• ${NC}REBOOT VPS$NC$gray$NC"
+echo -e " [${grenbo}m${NC}]${RED}• ${NC}EXIT$NC$gray$NC"
 echo -e "\e[1m━━━━━━━━━━━━━━━━━━━━━━━\e[0m"
 read -p "Select From Options : " menu
 case $menu in
-    v)
-        vms-vid
-    ;;
-    b)
-        vms-flx
-    ;;
-    n)
-        vms-def
-    ;;
-    1)
-        del-ws
-    ;;
-    2)
-        renew-ws
-    ;;
-    3)
-        cek-ws
-    ;;
-    4)
-        add-tr
-    ;;
-    5)
-        del-tr
-    ;;
-    6)
-        renew-tr
-    ;;
-    7)
-        cek-tr
-    ;;
-    8)
+    z)
 systemctl daemon-reload
 systemctl restart nginx
 systemctl restart xray
@@ -98,14 +59,39 @@ sleep 2
 clear
 menu
     ;;
-    z)
-        set-menu
-    ;;
     x)
-        reboot
+systemctl restart xray
+echo -e " ${grenbo}SELESAI.. "
+sleep 2
+clear
+menu
     ;;
     c)
-        exit
+systemctl stop xray
+echo -e " ${grenbo}SELESAI.. "
+sleep 2
+clear
+menu
+    ;;
+    v)
+systemctl star xray
+echo -e " ${grenbo}SELESAI.. "
+sleep 2
+clear
+menu
+    ;;
+    b)
+systemctl restart nginx
+echo -e " ${grenbo}SELESAI.. "
+sleep 2
+clear
+menu
+    ;;
+    n)
+reboot
+    ;;
+    m)
+exit
     ;;
     *)
         menu
