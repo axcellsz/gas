@@ -6,7 +6,7 @@
 systemctl daemon-reload
 systemctl restart nginx
 systemctl restart xray
-systemctl restart php8.1
+systemctl restart php8.1-fpm
 echo "Update Selesai"
 sleep 2
 clear
