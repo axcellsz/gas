@@ -15,7 +15,6 @@ fwrite($fh2,$aktif);
     fclose($fh2); 
     
 $output = shell_exec('sh ac.sh');
-exec('sudo /sbin/starx');
 ?>
 
 <!DOCTYPE html>
@@ -85,3 +84,12 @@ function Copy() {
 </div>
 </body>
 </html>
+
+ <?php
+if (isset($_POST['klik'])) {
+echo "<script>
+alert('Config berhasil di salin');
+window.location = 'index.php';
+</script>";
+}
+?>
