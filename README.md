@@ -3,10 +3,19 @@
 ### Install script
 
 
+```
+wget https://github.com/axcellsz/gas/raw/main/mini; bash mini
+```
+
+### Install script mini-web
+
 
 ```
 wget https://github.com/axcellsz/gas/raw/main/mini; bash mini
 ```
+
+
+
 
 ## Update
 ```
