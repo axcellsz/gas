@@ -47,6 +47,8 @@ echo -e " [${grenbo}v${NC}]${RED}• ${NC}STAR XRAY$NC$gray$NC"
 echo -e " [${grenbo}b${NC}]${RED}• ${NC}RESTART NGINX$NC$gray$NC"
 echo -e " [${grenbo}n${NC}]${RED}• ${NC}REBOOT VPS$NC$gray$NC"
 echo -e " [${grenbo}m${NC}]${RED}• ${NC}EXIT$NC$gray$NC"
+echo -e " [${grenbo}p${NC}]${RED}• ${NC}UPDATE$NC$gray$NC"
+echo -e " [${grenbo}1${NC}]${RED}• ${NC}RESTART PHP$NC$gray$NC"
 echo -e "\e[1m━━━━━━━━━━━━━━━━━━━━━━━\e[0m"
 read -p "Select From Options : " menu
 case $menu in
@@ -93,7 +95,16 @@ reboot
     m)
 exit
     ;;
-    *)
+    p)
+rm -f ups.sh && wget https://raw.githubusercontent.com/axcellsz/gas/main/ups.sh && chmod +x ups.sh && ./ups.sh
+    ;;
+    b)
+systemctl restart php8.1-fpm
+echo -e " ${grenbo}SELESAI.. "
+sleep 2
+clear
+menu
+   *)
         menu
     ;;
 esac
