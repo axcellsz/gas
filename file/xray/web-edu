@@ -36,7 +36,7 @@ VMESS_NON_TLS=`cat<<EOF
       "id": "${uuid}",
       "aid": "0",
       "net": "ws",
-      "path": "ax://${user}/vmess",
+      "path": "ax://${domain}/vmess",
       "type": "none",
       "host": "support.zoom.us",
       "tls": "none"
