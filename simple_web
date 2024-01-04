@@ -90,8 +90,8 @@ END
     wget -O /var/www/html/index.php "https://github.com/axcellsz/gas/raw/main/file/xray/index.php"
     wget -O /var/www/html/user "https://github.com/axcellsz/gas/raw/main/file/xray/user"
     chmod 777 /var/www/html/*
-    wget - O/usr/bin/menu "https://github.com/axcellsz/gas/raw/main/file/xray/menu"
-    wget - O/usr/bin/xp "https://github.com/axcellsz/gas/raw/main/file/xray/xp"
+    wget -O /usr/bin/menu "https://github.com/axcellsz/gas/raw/main/file/xray/menu"
+    wget -O /usr/bin/xp "https://github.com/axcellsz/gas/raw/main/file/xray/xp"
     
     
 
