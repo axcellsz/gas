@@ -56,11 +56,9 @@ $output = shell_exec('sh ac.sh');
 
   <br><div id="wrapshopcart">
     <center><h2>Ax-Ray Conf</h2><br>
-    
+<form method= "post" action= "">    
 <center><textarea class="inr" id="conf" type="textarea" style="text-align: center;" readonly><?PHP echo ($output)?></textarea><br>
     
-       
-             
 <span class=mono id="theList">
 
 </span>
