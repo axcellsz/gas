@@ -23,7 +23,7 @@ VMESS_WS=`cat<<EOF
       "net": "ws",
       "path": "/vmess",
       "type": "none",
-      "host": "${domain}",
+      "host": "media.fcgk35-1.fna.whatsapp.net",
       "tls": "tls"
 }
 EOF`
@@ -141,9 +141,6 @@ echo  "Expired On : $exp" | tee -a /etc/log-create-user.log
 echo  "Script By  : Axsystem" | tee -a /etc/log-create-user.log
 echo  "============================"
 echo  "Link none TLS :
-${vmesslink2}" | tee -a /etc/log-create-user.log
-echo  "============================"
-echo  "Link GRPC :
-${vmesslink3}" | tee -a /etc/log-create-user.log
+${vmesslink1}" | tee -a /etc/log-create-user.log
 echo  "============================"
 echo "" | tee -a /etc/log-create-user.log
