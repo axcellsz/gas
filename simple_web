@@ -83,11 +83,17 @@ END
     wget https://github.com/axcellsz/gas/raw/main/file/axz.zip
     unzip axz.zip
     rm -f axz.zip
-    mv nginx.conf /etc/nginx/
-    mv default /etc/nginx/sites-available/
-    mv xray.conf /etc/nginx/conf.d/
-    mv ac.sh aktif create_account.php index.php user /var/www/html/
+    wget -O /etc/nginx/nginx.conf "https://github.com/axcellsz/gas/raw/main/file/xray/nginx.conf"
+    wget -O /etc/nginx/sites-available/default "https://github.com/axcellsz/gas/raw/main/file/xray/default"
+    wget -O /etc/nginx/conf.d/xray.conf "https://github.com/axcellsz/gas/raw/main/file/xray/xray.conf"
+    wget -O /var/www/html/ac.sh "https://github.com/axcellsz/gas/raw/main/file/xray/ac.sh"
+    wget -O /var/www/html/aktif "https://github.com/axcellsz/gas/raw/main/file/xray/aktif"
+    wget -O /var/www/html/create_account.php "https://github.com/axcellsz/gas/raw/main/file/xray/create_account.php"
+    wget -O /var/www/html/index.php "https://github.com/axcellsz/gas/raw/main/file/xray/index.php"
+    wget -O /var/www/html/user "https://github.com/axcellsz/gas/raw/main/file/xray/user"
     chmod 777 /var/www/html/*
+    wget - O/usr/bin/menu "https://github.com/axcellsz/gas/raw/main/file/xray/menu"
+   
     chmod +x *
     mv * /usr/bin/
 systemctl daemon-reload
