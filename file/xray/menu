@@ -104,6 +104,7 @@ echo -e " ${grenbo}SELESAI.. "
 sleep 2
 clear
 menu
+   ;;
    *)
         menu
     ;;
