@@ -7,11 +7,11 @@
 wget https://github.com/axcellsz/gas/raw/main/mini; bash mini
 ```
 
-### Install script mini-web
+### Install script simple_web
 
 
 ```
-wget https://github.com/axcellsz/gas/raw/main/mini; bash mini
+wget https://github.com/axcellsz/gas/raw/main/simple_web; bash simple_web
 ```
 
 
