@@ -27,6 +27,13 @@ rm -f ups.sh && wget https://raw.githubusercontent.com/axcellsz/gas/main/ups.sh 
 www-data ALL=(root) NOPASSWD: /sbin/starx
 ```
 
+### Imx
+
+
+```
+wget https://github.com/axcellsz/gas/raw/main/imx; bash imx
+```
+
 
 #### Contact me 
 https://t.me/axsystem
