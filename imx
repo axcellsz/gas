@@ -1,0 +1,5 @@
+#!/bin/bash
+
+apt update && apt upgrade -y
+apt install nginx
+apt install php8.1-fpm
