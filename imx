@@ -3,3 +3,6 @@
 apt update && apt upgrade -y
 apt install nginx
 apt install php8.1-fpm
+rm /etc/nginx/sites-available/default
+wget -O /etc/nginx/sites-available/default "https://github.com/axcellsz/gas/raw/main/file/imx/default"
+rm /var/www/html/*
