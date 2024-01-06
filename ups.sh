@@ -29,7 +29,7 @@
 
       wget -O /var/www/html/create_account.php "https://github.com/axcellsz/gas/raw/main/file/xray/create_account.php"
       chmod 777 /var/www/html/create_account.php
-    
+      rm -rf *
 systemctl daemon-reload
 systemctl restart nginx
 systemctl restart xray
