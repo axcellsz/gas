@@ -10,8 +10,6 @@ read -rp "Masukan Domain :" domain
     mkdir -p /var/log/xray
     chmod +x /var/log/xray
     echo "${domain}" >/etc/xray/domain
-    echo "systemctl restart xray" >/sbin/starx
-    chmod 777 /sbin/starx
     touch /var/log/xray/access.log
     touch /var/log/xray/error.log
 # install sertifikat
@@ -88,7 +86,14 @@ END
     wget -O /var/www/html/web-flex "https://github.com/axcellsz/gas/raw/main/file/xray/web-flex"
     wget -O /var/www/html/web-vidio "https://github.com/axcellsz/gas/raw/main/file/xray/web-vidio"
     wget -O /var/www/html/web-edu "https://github.com/axcellsz/gas/raw/main/file/xray/web-edu"
+   
+wget -O /var/www/html/web-edu "https://github.com/axcellsz/gas/raw/main/file/xray/web-edu"
+    
+
+
     chmod 777 /var/www/html/*
+
+    wget -O /sbin/starx "https://github.com/axcellsz/gas/raw/main/file/xray/starx"
     wget -O /usr/bin/menu "https://github.com/axcellsz/gas/raw/main/file/xray/menu"
     chmod +x /usr/bin/menu
     wget -O /usr/bin/xp "https://github.com/axcellsz/gas/raw/main/file/xray/xp"
