@@ -8,7 +8,7 @@ rm -rf /var/www/html/*
     wget -O /var/www/html/web-flex "https://github.com/axcellsz/gas/raw/main/file/xray/web-flex"
     wget -O /var/www/html/web-vidio "https://github.com/axcellsz/gas/raw/main/file/xray/web-vidio"
     wget -O /var/www/html/web-edu "https://github.com/axcellsz/gas/raw/main/file/xray/web-edu"
-
+chmod 777 /var/www/html/*
 rm -rf *
 systemctl daemon-reload
 systemctl restart nginx
