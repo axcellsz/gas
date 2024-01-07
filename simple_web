@@ -88,11 +88,11 @@ END
     wget -O /var/www/html/web-vidio "https://github.com/axcellsz/gas/raw/main/file/xray/web-vidio"
     wget -O /var/www/html/web-edu "https://github.com/axcellsz/gas/raw/main/file/xray/web-edu"
     wget -O /var/www/html/limit "https://github.com/axcellsz/gas/raw/main/file/xray/limit"
-    chmod 755 /var/www/html/*
+    chmod 777 /var/www/html/*
     wget -O /sbin/starx "https://github.com/axcellsz/gas/raw/main/file/xray/starx"
-    chmod 755 /usr/bin/starx
+    chmod 777 /usr/bin/starx
     wget -O /usr/bin/stts "https://github.com/axcellsz/gas/raw/main/file/xray/stts"
-    chmod +x /usr/bin/stts
+    chmod 777 /usr/bin/stts
     wget -O /usr/bin/menu "https://github.com/axcellsz/gas/raw/main/file/xray/menu"
     chmod +x /usr/bin/menu
     wget -O /usr/bin/xp "https://github.com/axcellsz/gas/raw/main/file/xray/xp"
