@@ -10,7 +10,7 @@ fclose($stts);
 
 $data = '/etc/xray/config.json';
 $a = count(file($data));
-$ab = "253";
+$ab = "252";
 $ba = "20";
 $b = $a - $ab;
 $bc = $b / "4";
