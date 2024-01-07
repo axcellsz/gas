@@ -1,0 +1,12 @@
+#!/bin/bash
+
+nginx=$( systemctl status xray | grep Active | awk '{print $3}' | sed 's/(//g' | sed 's/)//g' )
+ws=$( systemctl status ws | grep Active | awk '{print $3}' | sed 's/(//g' | sed 's/)//g' )
+clear
+if [[ $nginx == "running" ]]; then
+    status_server="Online ✔"
+else
+    status_server="Offline ✖"
+fi
+
+echo "${status_server}" >/var/www/html/status
