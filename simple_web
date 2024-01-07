@@ -103,6 +103,7 @@ systemctl daemon-reload
 systemctl restart nginx
 systemctl restart xray
 echo "Install Selesai"
+stts
 sleep 2
 clear
 menu
