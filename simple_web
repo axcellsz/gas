@@ -2,6 +2,7 @@
 clear
 # update vps
     apt update && apt upgrade -y
+    apt install socat cron zip unzip -y
     apt install curl
 # domain
 read -rp "Masukan Domain :" domain
