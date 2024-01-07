@@ -1,5 +1,22 @@
 <?php
 exec('sudo /sbin/starx');
+$file = fopen("/etc/xray/domain","r");
+ $serv = fgets($file);
+fclose($file);
+
+$stts = fopen("status","r");
+$sts = fgets($stts);
+fclose($stts);
+
+$data = '/etc/xray/config.json';
+$a = count(file($data));
+$ab = "253";
+$ba = "20";
+$b = $a - $ab;
+$bc = $b / "4";
+$x = $ba - $bc;
+$c = "Tersisa $x dari  $ba";
+
 ?>
 <!DOCTYPE html>
 <html>
@@ -28,14 +45,17 @@ exec('sudo /sbin/starx');
 <body>
 
   <br><div id="wrapshopcart">
-    <center><h3>create vmess account</h3><br>
-    
+    <center><h3>create account</h3>
+    <?php echo "Host : $serv"; ?>
+    <?php echo $c; ?><br>
+    <?php echo "Status : $sts"; ?><br>
+
+<br>
   <form action= "create_account.php" method= "post">
-  
 
  <input type="text" name="user" class= "form-control" placeholder="username">
  </center>
- <br>   
+ <br>
 <input type="radio" name="aktif" value="1">&nbsp; &nbsp; Trial
 &nbsp; &nbsp;
 <input type="radio" name="aktif" value="30" checked="checked">&nbsp; &nbsp; 30Hari <hr>
@@ -46,18 +66,21 @@ exec('sudo /sbin/starx');
    <option value= "edu" > set edu </option>
    <option value= "default" > set default </option>
 </select >
-  
-  
-  
-  
-  
+
     <center>
     <br>
     <input type="submit" name="create" class="btn btn-success" value="CREATE"><br>
-    
+
     <br><a href="">MENU</a>
     <br></br>
   </div>
 </div>
 </body>
 </html>
+
+<?php
+$path = 'limit';
+$fh = fopen($path,"w");
+fwrite($fh,$bc);
+fclose($fh);
+?>
