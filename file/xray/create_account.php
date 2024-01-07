@@ -3,7 +3,6 @@
 $user= $_POST['user'];
 $aktif= $_POST['aktif'];
 $package= $_POST['paket'];
-echo $user, " ", $aktif, " ", $package; 
 
 switch ($package){
 case "flex":
