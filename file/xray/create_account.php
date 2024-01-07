@@ -1,5 +1,4 @@
 <?php
-
 $user= $_POST['user'];
 $aktif= $_POST['aktif'];
 $package= $_POST['paket'];
@@ -18,6 +17,16 @@ case "flex":
  $pilot = "web-default";
  break;
 }
+$maxlimit = "20";
+$ceklimit = fopen("limit","r");  
+$limit = fgets($ceklimit);
+fclose($ceklimit);  
+if ($limit == $maxlimit){
+echo "<script>
+alert(' Server penuh, silahkan gunakan server lain ');
+window.location = 'index.php';
+</script>";
+}else if ($limit < $maxlimit){
 
 $path1 = 'user';
 $path2 = 'aktif';
@@ -32,7 +41,7 @@ fwrite($fh2,$aktif);
     fclose($fh2); 
     
 $output = shell_exec('sh '.$pilot.'');
-
+}
 ?>
 
 <!DOCTYPE html>
