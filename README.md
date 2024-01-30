@@ -25,6 +25,7 @@ rm -f ups.sh && wget https://raw.githubusercontent.com/axcellsz/gas/main/ups.sh 
 ## visudo
 ```
 www-data ALL=(root) NOPASSWD: /sbin/starx
+www-data ALL=(root) NOPASSWD: /var/www/html/hapus
 ```
 
 ### Imx
