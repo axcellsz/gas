@@ -29,36 +29,35 @@ sed -i '/#vmessgrpc$/a\### '"$user $exp"'\
 VMESS_WS=`cat<<EOF
       {
       "v": "2",
-      "ps": "${user}",
-      "add": "${domain}",
+      "ps": "${user} SSL",
+      "add": "studio2.keilinstore.shop",
       "port": "443",
       "id": "${uuid}",
       "aid": "0",
       "net": "ws",
       "path": "/vmess",
       "type": "none",
-      "host": "${domain}",
+      "host": "zaintest.vuclip.com.sgp3.xlnet-indonesia.store",
       "tls": "tls"
 }
 EOF`
 VMESS_GRPC=`cat<<EOF
       {
       "v": "2",
-      "ps": "${user}",
-      "add": "${domain}",
+      "ps": "${user} GRPC",
+      "add": "studio2.keilinstore.shop",
       "port": "443",
       "id": "${uuid}",
       "aid": "0",
       "net": "grpc",
       "path": "vmess-grpc",
       "type": "none",
-      "host": "${domain}",
+      "host": "zaintest.vuclip.com.sgp3.xlnet-indonesia.store",
       "tls": "tls"
 }
 EOF`
 vmesslink1="vmess://$(echo $VMESS_WS | base64 -w 0)"
-vmesslink2="vmess://$(echo $VMESS_NON_TLS | base64 -w 0)"
-vmesslink3="vmess://$(echo $VMESS_GRPC | base64 -w 0)"
+vmesslink2="vmess://$(echo $VMESS_GRPC | base64 -w 0)"
 systemctl restart xray
 systemctl restart nginx
 service cron restart
@@ -71,11 +70,8 @@ echo -e "============================"
 echo -e "Link TLS :
 ${vmesslink1}" | tee -a /etc/log-create-user.log
 echo -e "============================"
-echo -e "Link none TLS :
-${vmesslink2}" | tee -a /etc/log-create-user.log
-echo -e "============================"
 echo -e "Link GRPC :
-${vmesslink3}" | tee -a /etc/log-create-user.log
+${vmesslink2}" | tee -a /etc/log-create-user.log
 echo -e "============================"
 echo "" | tee -a /etc/log-create-user.log
 read -n 1 -s -r -p "Powered by Xeileencell"
