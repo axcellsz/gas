@@ -1,3 +1,3 @@
 !#/bin/bash
-    wget -O /usr/bin/wilc "https://github.com/axcellsz/gas/raw/main/file/xray/wilc"
-    chmod +x /usr/bin/wilc
+    wget -O /usr/bin/vms-viu "https://github.com/axcellsz/gas/raw/main/file/xray/vms-viu"
+    chmod +x /usr/bin/vms-viu
