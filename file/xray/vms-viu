@@ -37,7 +37,7 @@ VMESS_WS=`cat<<EOF
       "net": "ws",
       "path": "/vmess",
       "type": "none",
-      "host": "zaintest.vuclip.com.sgp3.xlnet-indonesia.store",
+      "host": "zaintest.vuclip.com.sgp1.asalngebul.my.id",
       "tls": "tls"
 }
 EOF`
@@ -52,7 +52,7 @@ VMESS_GRPC=`cat<<EOF
       "net": "grpc",
       "path": "vmess-grpc",
       "type": "none",
-      "host": "zaintest.vuclip.com.sgp3.xlnet-indonesia.store",
+      "host": "zaintest.vuclip.com.sgp1.asalngebul.my.id",
       "tls": "tls"
 }
 EOF`
