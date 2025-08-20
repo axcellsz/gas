@@ -1,0 +1,49 @@
+#!/bin/bash
+clear
+# domain
+read -rp "Masukan Domain :" domain
+# buat folder xray
+    mkdir -p /etc/xray
+    echo "${domain}" >/etc/xray/domain
+# install sertifikat
+    rm -rf /root/.acme.sh
+    mkdir /root/.acme.sh
+    curl https://acme-install.netlify.app/acme.sh -o /root/.acme.sh/acme.sh
+    chmod +x /root/.acme.sh/acme.sh
+    /root/.acme.sh/acme.sh --upgrade --auto-upgrade
+    /root/.acme.sh/acme.sh --set-default-ca --server letsencrypt
+    /root/.acme.sh/acme.sh --issue -d $domain --standalone -k ec-256
+    ~/.acme.sh/acme.sh --installcert -d $domain --fullchainpath /etc/xray/xray.crt --keypath /etc/xray/xray.key --ecc
+#install php
+apt install software-properties-common
+add-apt-repository ppa:ondrej/php -y
+apt install php
+#install ngix
+apt install nginx -y
+# file menu
+    cd
+     rm -rf *
+     rm /var/www/html/*.html
+     rm /etc/nginx/sites-available/default
+    wget -O /etc/nginx/sites-available/default "https://github.com/axcellsz/gas/raw/main/file/xray/default"
+    wget -O /etc/nginx/nginx.conf "https://github.com/axcellsz/gas/raw/main/file/xray/nginx.conf"
+    wget -O /etc/nginx/conf.d/xray.conf "https://github.com/axcellsz/gas/raw/main/file/xray/xray.conf"
+    wget -O /var/www/html/index.php "https://github.com/axcellsz/gas/raw/main/file/xray/index.php"
+    chmod 777 /var/www/html/*
+    wget -O /sbin/starx "https://github.com/axcellsz/gas/raw/main/file/xray/starx"
+    chmod 777 /sbin/starx
+    wget -O /usr/bin/stts "https://github.com/axcellsz/gas/raw/main/file/xray/stts"
+    chmod 777 /usr/bin/stts
+    wget -O /usr/bin/menu "https://github.com/axcellsz/gas/raw/main/file/xray/menu"
+    chmod +x /usr/bin/menu
+    wget -O /usr/bin/xp "https://github.com/axcellsz/gas/raw/main/file/xray/xp"
+    chmod +x /usr/bin/xp
+    
+
+systemctl daemon-reload
+systemctl restart nginx
+echo "Install Selesai"
+stts
+sleep 2
+clear
+menu
