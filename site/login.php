@@ -65,7 +65,6 @@ if (isset($_POST['login'])){
     <input type="password" name="pass" class= "form-control" placeholder="Password"><br>
     <input type="submit" name="login" class="btn btn-success" value="login"><br>
     <br><a href="registrasi.php">Register</a><br>
-    <br><a href="admin/login_admin.php">Login admin</a><br>
     <br></br>
   </div>
 </div>
