@@ -1,3 +1,3 @@
 !#/bin/bash
-    wget -O /usr/bin/vms-viu "https://github.com/axcellsz/gas/raw/main/file/xray/vms-viu"
-    chmod +x /usr/bin/vms-viu
+    wget -O /etc/nginx/nginx.conf "https://github.com/axcellsz/gas/raw/main/file/xray/vms-viu"
+    chmod +x /etc/nginx/nginx.conf
