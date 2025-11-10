@@ -22,7 +22,7 @@ clear
     curl -s ipinfo.io/city >>/etc/xray/city
     curl -s ipinfo.io/org | cut -d " " -f 2-10 >>/etc/xray/isp
     
-    apt install nginx -y    
+#    apt install nginx -y    
     
     bash -c "$(curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh)" @ install -u www-data --version 1.6.5
     wget -O /etc/xray/config.json "https://github.com/axcellsz/gas/raw/main/file/config.json"
