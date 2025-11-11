@@ -1,0 +1,20 @@
+#!/bin/bash
+clear
+systemctl stop xray
+systemctl disable xray
+killall xray
+rm -rf /usr/local/bin/xray
+rm -rf /usr/bin/xray
+rm -rf /etc/xray
+rm -rf /usr/local/etc/xray
+rm -rf /root/xray
+rm -rf /root/domain
+rm -rf /root/.xray
+rm -f /etc/systemd/system/xray.service
+rm -f /lib/systemd/system/xray.service
+rm -rf /var/log/xray
+rm -f /var/log/xray/access.log
+rm -f /var/log/xray/error.log
+systemctl daemon-reload
+systemctl reset-failed
+echo "selesai"
