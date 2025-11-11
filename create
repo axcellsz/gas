@@ -1,0 +1,176 @@
+#!/usr/bin/env bash
+# add-vless-user.sh
+# Membuat akun VLESS/VMESS/TROJAN/SS pada Xray config.json yang ada.
+# Menggunakan jq untuk memodifikasi JSON agar aman.
+set -euo pipefail
+
+CONFIG="/etc/xray/config.json"
+DOMAIN_FILE="/etc/xray/domain"
+LOG="/etc/log-create-user.log"
+
+# cek prasyarat
+for cmd in jq ss date systemctl base64; do
+  if ! command -v $cmd >/dev/null 2>&1; then
+    echo "Error: diperlukan '$cmd' tapi tidak ditemukan. Install dulu (apt install -y $cmd?)"
+    exit 1
+  fi
+done
+
+if [[ ! -f "$CONFIG" ]]; then
+  echo "Error: $CONFIG tidak ditemukan. Pastikan Xray sudah terinstall dan file config ada."
+  exit 1
+fi
+if [[ ! -f "$DOMAIN_FILE" ]]; then
+  echo "Error: $DOMAIN_FILE tidak ditemukan. Masukkan domain ke $DOMAIN_FILE atau edit script."
+  exit 1
+fi
+
+domain=$(cat "$DOMAIN_FILE")
+clear
+echo "===== Buat Akun VLESS/VMESS (Xray) ====="
+
+# input username valid (alnum + underscore)
+while true; do
+  read -rp "User: " user
+  if [[ ! $user =~ ^[a-zA-Z0-9_]+$ ]]; then
+    echo "Nama user hanya boleh huruf, angka, underscore. Coba lagi."
+    continue
+  fi
+
+  # cek keberadaan user di config.json via jq (cari di field email/id/password)
+  if jq -e --arg u "$user" '
+      .inbounds[]?.settings?.clients[]? as $c
+      | ( ($c.email // "") == $u ) or ( ($c.id // "") == $u ) or ( ($c.password // "") == $u )
+      | select(.==true)
+    ' "$CONFIG" >/dev/null 2>&1; then
+    echo "Nama sudah terpakai. Pilih nama lain."
+    continue
+  fi
+
+  break
+done
+
+# generate uuid/password (satu value dipakai untuk id/password)
+uuid=$(cat /proc/sys/kernel/random/uuid)
+
+# input masa aktif
+while true; do
+  read -rp "Expired (days): " masaaktif
+  if ! [[ "$masaaktif" =~ ^[0-9]+$ ]]; then
+    echo "Masukkan angka hari (contoh: 30)."
+    continue
+  fi
+  break
+done
+exp=$(date -d "+${masaaktif} days" +"%Y-%m-%d")
+
+# Backup config dulu
+cp -a "$CONFIG" "${CONFIG}.bak.$(date +%s)"
+
+# Tambah client ke inbounds sesuai protokol:
+# - vless: { "id": uuid, "email": user }
+# - vmess: { "id": uuid, "alterId": 0, "email": user }
+# - trojan: { "password": uuid, "email": user }
+# - shadowsocks: { "method":"aes-128-gcm","password": uuid, "email": user }
+
+tmpfile=$(mktemp)
+jq --arg id "$uuid" --arg user "$user" '
+  .inbounds = (.inbounds | map(
+    if .protocol == "vless" and (.settings.clients // null) != null then
+      .settings.clients += [ { "id": $id, "email": $user } ] | .
+    elif .protocol == "vmess" and (.settings.clients // null) != null then
+      .settings.clients += [ { "id": $id, "alterId": 0, "email": $user } ] | .
+    elif .protocol == "trojan" and (.settings.clients // null) != null then
+      .settings.clients += [ { "password": $id, "email": $user } ] | .
+    elif .protocol == "shadowsocks" and (.settings.clients // null) != null then
+      .settings.clients += [ { "method":"aes-128-gcm", "password": $id, "email": $user } ] | .
+    else
+      .
+    end
+  ))
+' "$CONFIG" > "$tmpfile" && mv "$tmpfile" "$CONFIG"
+
+# Validasi JSON
+if ! python3 -c "import json,sys; json.load(open('$CONFIG'))" 2>/dev/null; then
+  echo "ERROR: /etc/xray/config.json jadi invalid setelah perubahan. Mengembalikan backup."
+  cp -a "${CONFIG}.bak.$(date +%s)" "$CONFIG" || true
+  exit 1
+fi
+
+# Restart services
+systemctl restart xray
+systemctl restart nginx || true
+service cron restart || true
+
+# Buat link VLESS (ws+tls dan ws non-tls)
+# VLESS URI form:
+# vless://UUID@host:port?encryption=none&security=tls&type=ws&path=/vless#user
+vless_tls="vless://${uuid}@${domain}:443?encryption=none&security=tls&type=ws&path=%2Fvless#${user}"
+vless_none="vless://${uuid}@${domain}:80?encryption=none&security=none&type=ws&path=%2Fvless#${user}"
+
+# Buat link VMESS (two variants) — VMESS uses base64 of JSON
+VMESS_WS_JSON=$(cat <<EOF
+{
+  "v":"2",
+  "ps":"${user}",
+  "add":"${domain}",
+  "port":"443",
+  "id":"${uuid}",
+  "aid":"0",
+  "net":"ws",
+  "path":"/vmess",
+  "type":"none",
+  "host":"${domain}",
+  "tls":"tls"
+}
+EOF
+)
+VMESS_PLAIN_JSON=$(cat <<EOF
+{
+  "v":"2",
+  "ps":"${user}",
+  "add":"${domain}",
+  "port":"80",
+  "id":"${uuid}",
+  "aid":"0",
+  "net":"ws",
+  "path":"/vmess",
+  "type":"none",
+  "host":"${domain}",
+  "tls":"none"
+}
+EOF
+)
+vmesslink1="vmess://$(echo -n "$VMESS_WS_JSON" | base64 -w 0)"
+vmesslink2="vmess://$(echo -n "$VMESS_PLAIN_JSON" | base64 -w 0)"
+
+# Output informasi & log
+cat <<-INFO | tee -a "$LOG"
+============================
+Username   : ${user}
+ID/Password: ${uuid}
+Expired On : ${exp}
+Script By  : $(whoami)
+Domain     : ${domain}
+============================
+VLESS (TLS)    :
+${vless_tls}
+----------------------------
+VLESS (No TLS) :
+${vless_none}
+----------------------------
+VMESS (TLS WS) :
+${vmesslink1}
+----------------------------
+VMESS (No TLS)  :
+${vmesslink2}
+============================
+INFO
+
+read -n 1 -s -r -p "Press any key to return..."
+# jika ada menu fungsi, panggil menu; jika tidak, exit
+if command -v menu >/dev/null 2>&1; then
+  menu
+else
+  exit 0
+fi
