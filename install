@@ -1,0 +1,186 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# ====== CONFIG ======
+DOMAIN=""
+EMAIL=""
+# Jika Anda menggunakan Cloudflare API, export CF_Token sebelumnya:
+# export CF_Token="xxxx"
+# ====================
+
+# basic deps
+apt update && apt upgrade -y
+apt install -y socat cron zip unzip curl wget dnsutils jq sed
+
+read -rp "Masukkan domain (contoh: example.com): " DOMAIN
+read -rp "Masukkan email untuk sertifikat (Let's Encrypt): " EMAIL
+
+log() { echo ">> $*"; }
+
+# create folders
+mkdir -p /etc/xray /var/log/xray
+touch /var/log/xray/access.log /var/log/xray/error.log
+echo "${DOMAIN}" >/etc/xray/domain
+
+# ----- check DNS AAAA -----
+AAAA=$(dig +short AAAA "${DOMAIN}" | tr -d '\n' || true)
+A=$(dig +short A "${DOMAIN}" | tr -d '\n' || true)
+
+log "DNS A: ${A:-<none>}"
+log "DNS AAAA: ${AAAA:-<none>}"
+
+if [[ -z "$AAAA" ]]; then
+  log "WARNING: Domain ${DOMAIN} has NO AAAA record. On IPv6-only VPS Let's Encrypt HTTP-01 via IPv6 will FAIL."
+  echo
+  echo "1) Jika VPS Anda IPv6-only, tambahkan AAAA record yang mengarah ke IPv6 Hetzner Anda."
+  echo "2) Atau gunakan DNS-01 (Cloudflare atau provider lain) — set token API dan jalankan ulang script."
+  echo
+  read -rp "Lanjutkan percobaan (akan coba issuance tapi kemungkinan besar gagal)? (y/N): " proceed
+  if [[ "${proceed,,}" != "y" ]]; then
+    log "Abort. Tambahkan AAAA atau siapkan DNS-API dan jalankan lagi."
+    exit 1
+  fi
+fi
+
+# ----- install acme.sh (official) -----
+if [[ ! -x "$HOME/.acme.sh/acme.sh" ]]; then
+  curl https://get.acme.sh | sh
+  export PATH="$HOME/.acme.sh:$PATH"
+else
+  export PATH="$HOME/.acme.sh:$PATH"
+  "$HOME/.acme.sh/acme.sh" --upgrade --auto-upgrade || true
+fi
+
+# ensure nginx not running when using standalone challengers
+systemctl stop nginx || true
+systemctl stop apache2 || true
+
+# ----- Try issuance via ACME standalone binding to IPv6 -----
+log "Mencoba issuance via acme.sh standalone (IPv6)."
+set +e
+# acme.sh mencoba bind IPv6 jika opsi --listen-v6 didukung; gunakan opsi ini jika tersedia
+ACME_SH="$HOME/.acme.sh/acme.sh"
+
+# Try with explicit listen-v6 flag if supported
+$ACME_SH --help | grep -q -- '--listen-v6' && LISTEN_V6="--listen-v6" || LISTEN_V6=""
+
+# Try EC cert (like original script)
+if $ACME_SH --issue --standalone ${LISTEN_V6} -d "${DOMAIN}" -k ec-256 --accountemail "${EMAIL}"; then
+  log "acme.sh standalone succeeded (IPv6). Installing certs..."
+  sudo mkdir -p /etc/xray
+  $ACME_SH --install-cert -d "${DOMAIN}" \
+    --fullchain-file /etc/xray/xray.crt \
+    --key-file /etc/xray/xray.key \
+    --ecc \
+    --reloadcmd "systemctl restart xray || true; systemctl restart nginx || true"
+  ISSUED=1
+else
+  log "acme.sh standalone failed. Will try fallback to DNS-01 if possible."
+  ISSUED=0
+fi
+set -e
+
+# ----- Fallback to DNS-01 via Cloudflare if available -----
+if [[ "${ISSUED}" -eq 0 ]]; then
+  if [[ -n "${CF_Token:-}" ]]; then
+    log "Using Cloudflare DNS API (CF_Token present) to issue certificate (DNS-01)."
+    export CF_Token
+    # issue with dns_cf
+    if $ACME_SH --issue --dns dns_cf -d "${DOMAIN}" -k ec-256 --accountemail "${EMAIL}"; then
+      $ACME_SH --install-cert -d "${DOMAIN}" \
+        --fullchain-file /etc/xray/xray.crt \
+        --key-file /etc/xray/xray.key \
+        --ecc \
+        --reloadcmd "systemctl restart xray || true; systemctl restart nginx || true"
+      ISSUED=1
+    else
+      log "acme.sh dns_cf issuance failed."
+    fi
+  else
+    log "No CF_Token provided — cannot perform automated DNS-01 fallback. You can:"
+    echo "- Add AAAA record for ${DOMAIN} and rerun the script (recommended for IPv6-only)."
+    echo "- Or export CF_Token (Cloudflare) and rerun script to use DNS-01."
+    exit 1
+  fi
+fi
+
+if [[ "${ISSUED}" -ne 1 ]]; then
+  log "Certificate issuance failed. Exit."
+  exit 1
+fi
+
+# ----- Install nginx (now certs exist) -----
+log "Install nginx & basic webroot"
+apt install -y nginx
+# create a minimal site that serves from /var/www/html and listens IPv6
+mkdir -p /var/www/html
+cat >/etc/nginx/conf.d/xray_site.conf <<EOF
+server {
+    listen 80;
+    listen [::]:80;
+    server_name ${DOMAIN};
+    root /var/www/html;
+    location /.well-known/acme-challenge/ {
+        allow all;
+    }
+    location / { return 200 "OK\n"; } 
+}
+server {
+    listen 443 ssl http2;
+    listen [::]:443 ssl http2;
+    server_name ${DOMAIN};
+
+    ssl_certificate /etc/xray/xray.crt;
+    ssl_certificate_key /etc/xray/xray.key;
+
+    location / {
+        proxy_pass http://127.0.0.1:10000;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade \$http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_set_header Host \$host;
+    }
+}
+EOF
+
+# reload nginx
+systemctl daemon-reload
+systemctl restart nginx
+
+# ----- Install Xray (official install script) -----
+log "Install Xray"
+bash -c "$(curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh)" @ install -u www-data --version 1.6.5
+
+# copy config (you may want to customize config.json to listen on 127.0.0.1:10000 if using nginx as TLS terminator)
+wget -O /etc/xray/config.json "https://github.com/axcellsz/gas/raw/main/file/config.json" || true
+
+# create systemd unit (keep your original unit but ensure paths)
+cat >/etc/systemd/system/xray.service <<'EOF'
+[Unit]
+Description=Xray Service
+Documentation=https://github.com/xtls
+After=network.target nss-lookup.target
+
+[Service]
+User=www-data
+CapabilityBoundingSet=CAP_NET_ADMIN CAP_NET_BIND_SERVICE
+AmbientCapabilities=CAP_NET_ADMIN CAP_NET_BIND_SERVICE
+NoNewPrivileges=true
+ExecStart=/usr/local/bin/xray run -config /etc/xray/config.json
+Restart=on-failure
+RestartPreventExitStatus=23
+LimitNPROC=10000
+LimitNOFILE=1000000
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+systemctl daemon-reload
+systemctl enable --now xray
+systemctl restart nginx || true
+
+log "Install selesai. Cert dan key: /etc/xray/xray.crt , /etc/xray/xray.key"
+log "Jika Anda ingin Xray menerima TLS langsung (tanpa nginx), pastikan config.json menunjuk ke /etc/xray/xray.crt & /etc/xray/xray.key dan listen '::' pada inbound."
+
+# end
