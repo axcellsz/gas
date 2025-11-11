@@ -1,50 +1,51 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# ================== USER INPUT ==================
+# Installer Xray + nginx (IPv6-aware) with acme.sh (standalone + Cloudflare DNS fallback)
+# Includes /etc/xray/config.json embedded (cleaned version you provided).
+# Usage: run as root. For DNS fallback with Cloudflare export CF_Token before running.
+# Example: export CF_Token="token"; ./install-xray-full.sh
+
 read -rp "Masukkan domain (contoh: example.com): " DOMAIN
 read -rp "Masukkan email untuk sertifikat (Let's Encrypt): " EMAIL
-# Jika ingin otomatis fallback DNS-01 via Cloudflare, export CF_Token sebelumnya:
-# export CF_Token="xxxxxxxxxxxxxxxxxxxxxxxxxxxx"
-# =================================================
+echo
 
-log(){ echo ">> $*"; }
+log(){ printf ">> %s\n" "$*"; }
 
-# basic updates & deps
+# Basic packages
 apt update && apt upgrade -y
-apt install -y socat cron zip unzip curl wget dnsutils jq sed gnupg2 ca-certificates
+apt install -y socat cron zip unzip curl wget dnsutils jq sed python3 gnupg2 ca-certificates
 
-# create required folders & logs
+# Prepare folders & logs
 mkdir -p /etc/xray /var/log/xray /var/www/html /etc/nginx/conf.d
 touch /var/log/xray/access.log /var/log/xray/error.log
 chown -R root:root /etc/xray
 echo "${DOMAIN}" >/etc/xray/domain
 
-# check DNS records
+# Check DNS
 AAAA=$(dig +short AAAA "${DOMAIN}" | tr -d '\n' || true)
 A=$(dig +short A "${DOMAIN}" | tr -d '\n' || true)
 log "DNS A: ${A:-<none>}"
 log "DNS AAAA: ${AAAA:-<none>}"
 
 if [[ -z "$AAAA" ]]; then
-  echo
-  log "WARNING: Domain ${DOMAIN} has NO AAAA record. On IPv6-only VPS Let's Encrypt HTTP-01 via IPv6 will likely FAIL."
-  echo "Either add AAAA record pointing to your server IPv6, OR prepare CF_Token for DNS-01 fallback (Cloudflare)."
-  read -rp "Lanjutkan percobaan issuance kemungkinan gagal? (y/N): " proceed
-  if [[ "${proceed,,}" != "y" ]]; then
-    log "Abort. Tambahkan AAAA atau siapkan DNS-API lalu jalankan lagi."
+  log "WARNING: Domain ${DOMAIN} has NO AAAA. On IPv6-only VPS HTTP-01 may fail."
+  echo "Jika VPS Anda hanya IPv6, tambahkan AAAA record atau siapkan CF_Token untuk DNS-01."
+  read -rp "Lanjutkan meski AAAA kosong? (y/N): " yn
+  if [[ "${yn,,}" != "y" ]]; then
+    log "Abort. Tambahkan AAAA atau siapkan DNS API lalu jalankan lagi."
     exit 1
   fi
 fi
 
-# install acme.sh official
+# Install acme.sh (official)
 if [[ ! -x "$HOME/.acme.sh/acme.sh" ]]; then
   curl https://get.acme.sh | sh
 fi
 export PATH="$HOME/.acme.sh:$PATH"
 "$HOME/.acme.sh/acme.sh" --upgrade --auto-upgrade || true
 
-# ensure nginx is stopped before standalone issuance
+# Ensure services not occupying port 80
 systemctl stop nginx || true
 systemctl stop apache2 || true
 
@@ -52,7 +53,7 @@ ACME_SH="$HOME/.acme.sh/acme.sh"
 $ACME_SH --help | grep -q -- '--listen-v6' && LISTEN_V6="--listen-v6" || LISTEN_V6=""
 
 ISSUED=0
-log "Mencoba issue via acme.sh standalone (IPv6) for ${DOMAIN} ..."
+log "Mencoba issue cert via acme.sh standalone (IPv6) untuk ${DOMAIN} ..."
 set +e
 if $ACME_SH --issue --standalone ${LISTEN_V6} -d "${DOMAIN}" -k ec-256 --accountemail "${EMAIL}"; then
   log "Standalone issuance succeeded."
@@ -63,14 +64,14 @@ if $ACME_SH --issue --standalone ${LISTEN_V6} -d "${DOMAIN}" -k ec-256 --account
     --reloadcmd "systemctl restart xray || true; systemctl restart nginx || true"
   ISSUED=1
 else
-  log "Standalone issuance failed. Attempting DNS-01 fallback if CF_Token present."
+  log "Standalone issuance failed or timed out."
 fi
 set -e
 
-# DNS-01 fallback: Cloudflare
+# Fallback to DNS-01 via Cloudflare if available
 if [[ "${ISSUED}" -ne 1 ]]; then
   if [[ -n "${CF_Token:-}" ]]; then
-    log "Using Cloudflare DNS API (CF_Token present)."
+    log "CF_Token detected — attempting DNS-01 via Cloudflare."
     export CF_Token
     if $ACME_SH --issue --dns dns_cf -d "${DOMAIN}" -k ec-256 --accountemail "${EMAIL}"; then
       $ACME_SH --install-cert -d "${DOMAIN}" \
@@ -83,24 +84,26 @@ if [[ "${ISSUED}" -ne 1 ]]; then
       log "acme.sh dns_cf issuance failed."
     fi
   else
-    log "CF_Token not set; skipping DNS-01 fallback. You may set CF_Token and rerun."
+    log "CF_Token not provided; skipping DNS-01 fallback. Set CF_Token and rerun for automated DNS-01."
   fi
 fi
 
 if [[ "${ISSUED}" -ne 1 ]]; then
-  log "Certificate issuance failed. Exiting installer."
+  log "Certificate issuance gagal. Periksa DNS/Firewall dan jalankan ulang (atau set CF_Token)."
   exit 1
 fi
 
-log "Certificate installed to /etc/xray/xray.crt and /etc/xray/xray.key"
+log "Certificate terpasang: /etc/xray/xray.crt dan /etc/xray/xray.key"
 
 # Install nginx
 apt install -y nginx
 
-# Write nginx xray.conf (cleaned & IPv6-ready). SERVER_NAME substituted.
-cat >/etc/nginx/conf.d/xray.conf <<'NGXCONF'
-# /etc/nginx/conf.d/xray.conf
-map $http_upgrade $connection_upgrade {
+# Write nginx config with direct domain substitution.
+# Note: escape Nginx vars like $http_upgrade, $remote_addr, $host with backslash to prevent shell expansion.
+cat >/etc/nginx/conf.d/xray.conf <<EOF
+# xray nginx conf (auto-generated). server_name = ${DOMAIN}
+
+map \$http_upgrade \$connection_upgrade {
     default upgrade;
     ''      close;
 }
@@ -117,15 +120,15 @@ server {
 server {
     listen 80;
     listen [::]:80;
-    server_name __SERVER_NAME__;
+    server_name ${DOMAIN};
     root /var/www/html;
 
     location /.well-known/acme-challenge/ {
-        try_files $uri =404;
+        try_files \$uri =404;
     }
 
     location / {
-        try_files $uri /index.html =200;
+        try_files \$uri /index.html =200;
     }
 
     access_log /var/log/nginx/xray_http_access.log;
@@ -135,7 +138,7 @@ server {
 server {
     listen 443 ssl http2 reuseport;
     listen [::]:443 ssl http2 reuseport;
-    server_name __SERVER_NAME__;
+    server_name ${DOMAIN};
 
     ssl_certificate /etc/xray/xray.crt;
     ssl_certificate_key /etc/xray/xray.key;
@@ -147,112 +150,384 @@ server {
     access_log /var/log/nginx/xray_tls_access.log;
     error_log  /var/log/nginx/xray_tls_error.log;
 
-    proxy_set_header X-Real-IP $remote_addr;
-    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-    proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_set_header X-Real-IP \$remote_addr;
+    proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto \$scheme;
 
+    # VLESS WS
     location /vless {
         proxy_redirect off;
         proxy_pass http://127.0.0.1:10001;
         proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection $connection_upgrade;
-        proxy_set_header Host $host;
+        proxy_set_header Upgrade \$http_upgrade;
+        proxy_set_header Connection \$connection_upgrade;
+        proxy_set_header Host \$host;
+        proxy_buffering off;
+        proxy_read_timeout 120s;
+        proxy_send_timeout 120s;
+        proxy_connect_timeout 30s;
     }
 
+    # VMESS WS (default)
     location / {
         proxy_redirect off;
         proxy_pass http://127.0.0.1:10002;
         proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection $connection_upgrade;
-        proxy_set_header Host $host;
+        proxy_set_header Upgrade \$http_upgrade;
+        proxy_set_header Connection \$connection_upgrade;
+        proxy_set_header Host \$host;
+        proxy_buffering off;
+        proxy_read_timeout 120s;
+        proxy_send_timeout 120s;
+        proxy_connect_timeout 30s;
     }
 
+    # Trojan WS
     location /trojan-ws {
         proxy_redirect off;
         proxy_pass http://127.0.0.1:10003;
         proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection $connection_upgrade;
-        proxy_set_header Host $host;
+        proxy_set_header Upgrade \$http_upgrade;
+        proxy_set_header Connection \$connection_upgrade;
+        proxy_set_header Host \$host;
+        proxy_buffering off;
+        proxy_read_timeout 120s;
+        proxy_send_timeout 120s;
+        proxy_connect_timeout 30s;
     }
 
+    # Shadowsocks WS
     location /ss-ws {
         proxy_redirect off;
         proxy_pass http://127.0.0.1:10004;
         proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection $connection_upgrade;
-        proxy_set_header Host $host;
+        proxy_set_header Upgrade \$http_upgrade;
+        proxy_set_header Connection \$connection_upgrade;
+        proxy_set_header Host \$host;
+        proxy_buffering off;
+        proxy_read_timeout 120s;
+        proxy_send_timeout 120s;
+        proxy_connect_timeout 30s;
     }
 
+    # Custom tunnel example
     location /FIGHTERTUNNEL {
         proxy_redirect off;
         proxy_pass http://127.0.0.1:2083;
         proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection $connection_upgrade;
-        proxy_set_header Host $host;
+        proxy_set_header Upgrade \$http_upgrade;
+        proxy_set_header Connection \$connection_upgrade;
+        proxy_set_header Host \$host;
+        proxy_buffering off;
+        proxy_read_timeout 120s;
+        proxy_send_timeout 120s;
+        proxy_connect_timeout 30s;
     }
 
+    # gRPC endpoints
     location ^~ /vless-grpc {
         grpc_pass grpc://127.0.0.1:10005;
-        grpc_set_header X-Real-IP $remote_addr;
-        grpc_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        grpc_set_header Host $http_host;
+        grpc_set_header X-Real-IP \$remote_addr;
+        grpc_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+        grpc_set_header Host \$http_host;
     }
 
     location ^~ /vmess-grpc {
         grpc_pass grpc://127.0.0.1:10006;
-        grpc_set_header X-Real-IP $remote_addr;
-        grpc_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        grpc_set_header Host $http_host;
+        grpc_set_header X-Real-IP \$remote_addr;
+        grpc_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+        grpc_set_header Host \$http_host;
     }
 
     location ^~ /trojan-grpc {
         grpc_pass grpc://127.0.0.1:10007;
-        grpc_set_header X-Real-IP $remote_addr;
-        grpc_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        grpc_set_header Host $http_host;
+        grpc_set_header X-Real-IP \$remote_addr;
+        grpc_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+        grpc_set_header Host \$http_host;
     }
 
     location ^~ /ss-grpc {
         grpc_pass grpc://127.0.0.1:10008;
-        grpc_set_header X-Real-IP $remote_addr;
-        grpc_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        grpc_set_header Host $http_host;
+        grpc_set_header X-Real-IP \$remote_addr;
+        grpc_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+        grpc_set_header Host \$http_host;
     }
 }
-NGXCONF
-
-# substitute server_name placeholder
-sed -i "s/__SERVER_NAME__/${DOMAIN}/g" /etc/nginx/conf.d/xray.conf
-
-# create basic index.html to camouflage
-cat >/var/www/html/index.html <<EOF
-<html><head><title>Welcome</title></head><body><h1>Welcome to ${DOMAIN}</h1></body></html>
 EOF
+
+# create simple camouflage page
+cat >/var/www/html/index.html <<HTML
+<html><head><title>Welcome</title></head><body><h1>Welcome to ${DOMAIN}</h1></body></html>
+HTML
 chown -R www-data:www-data /var/www/html
 
-# test nginx config & restart
+# Test nginx config & reload
 nginx -t
 systemctl enable --now nginx
 systemctl restart nginx
 
 # Install Xray (official)
-log "Installing Xray..."
+log "Menginstall Xray..."
 bash -c "$(curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh)" @ install -u www-data --version 1.6.5
 
-# Fetch example config.json (if repo provides one) - optional, best to customize later
-if wget -q -O /etc/xray/config.json "https://github.com/axcellsz/gas/raw/main/file/config.json"; then
-  log "Downloaded example /etc/xray/config.json (please verify inbound ports match nginx proxy_pass ports)."
-else
-  log "No sample config downloaded. You must ensure /etc/xray/config.json exists and Xray listens on ports 10001..10004 (ws) and 10005..10008 (grpc) or adjust nginx."
+# === write cleaned config.json into /etc/xray/config.json ===
+cat >/etc/xray/config.json <<'JSON'
+{
+  "log": {
+    "access": "/var/log/xray/access.log",
+    "error": "/var/log/xray/error.log",
+    "loglevel": "warning"
+  },
+  "inbounds": [
+    {
+      "listen": "127.0.0.1",
+      "port": 10000,
+      "protocol": "dokodemo-door",
+      "settings": {
+        "address": "127.0.0.1"
+      },
+      "tag": "api"
+    },
+    {
+      "listen": "127.0.0.1",
+      "port": 10001,
+      "protocol": "vless",
+      "settings": {
+        "decryption": "none",
+        "clients": [
+          {
+            "id": "1d1c1d94-6987-4658-a4dc-8821a30fe7e0"
+          }
+        ]
+      },
+      "streamSettings": {
+        "network": "ws",
+        "wsSettings": {
+          "path": "/vless"
+        }
+      }
+    },
+    {
+      "listen": "127.0.0.1",
+      "port": 10002,
+      "protocol": "vmess",
+      "settings": {
+        "clients": [
+          {
+            "id": "1d1c1d94-6987-4658-a4dc-8821a30fe7e0",
+            "alterId": 0
+          }
+        ]
+      },
+      "streamSettings": {
+        "network": "ws",
+        "wsSettings": {
+          "path": "/vmess"
+        }
+      }
+    },
+    {
+      "listen": "127.0.0.1",
+      "port": 10003,
+      "protocol": "trojan",
+      "settings": {
+        "decryption": "none",
+        "clients": [
+          {
+            "password": "1d1c1d94-6987-4658-a4dc-8821a30fe7e0"
+          }
+        ],
+        "udp": true
+      },
+      "streamSettings": {
+        "network": "ws",
+        "wsSettings": {
+          "path": "/trojan-ws"
+        }
+      }
+    },
+    {
+      "listen": "127.0.0.1",
+      "port": 10004,
+      "protocol": "shadowsocks",
+      "settings": {
+        "clients": [
+          {
+            "method": "aes-128-gcm",
+            "password": "1d1c1d94-6987-4658-a4dc-8821a30fe7e0"
+          }
+        ],
+        "network": "tcp,udp"
+      },
+      "streamSettings": {
+        "network": "ws",
+        "wsSettings": {
+          "path": "/ss-ws"
+        }
+      }
+    },
+    {
+      "listen": "127.0.0.1",
+      "port": 10005,
+      "protocol": "vless",
+      "settings": {
+        "decryption": "none",
+        "clients": [
+          {
+            "id": "1d1c1d94-6987-4658-a4dc-8821a30fe7e0"
+          }
+        ]
+      },
+      "streamSettings": {
+        "network": "grpc",
+        "grpcSettings": {
+          "serviceName": "vless-grpc"
+        }
+      }
+    },
+    {
+      "listen": "127.0.0.1",
+      "port": 10006,
+      "protocol": "vmess",
+      "settings": {
+        "clients": [
+          {
+            "id": "1d1c1d94-6987-4658-a4dc-8821a30fe7e0",
+            "alterId": 0
+          }
+        ]
+      },
+      "streamSettings": {
+        "network": "grpc",
+        "grpcSettings": {
+          "serviceName": "vmess-grpc"
+        }
+      }
+    },
+    {
+      "listen": "127.0.0.1",
+      "port": 10007,
+      "protocol": "trojan",
+      "settings": {
+        "decryption": "none",
+        "clients": [
+          {
+            "password": "1d1c1d94-6987-4658-a4dc-8821a30fe7e0"
+          }
+        ]
+      },
+      "streamSettings": {
+        "network": "grpc",
+        "grpcSettings": {
+          "serviceName": "trojan-grpc"
+        }
+      }
+    },
+    {
+      "listen": "127.0.0.1",
+      "port": 10008,
+      "protocol": "shadowsocks",
+      "settings": {
+        "clients": [
+          {
+            "method": "aes-128-gcm",
+            "password": "1d1c1d94-6987-4658-a4dc-8821a30fe7e0"
+          }
+        ],
+        "network": "tcp,udp"
+      },
+      "streamSettings": {
+        "network": "grpc",
+        "grpcSettings": {
+          "serviceName": "ss-grpc"
+        }
+      }
+    }
+  ],
+  "outbounds": [
+    {
+      "protocol": "freedom",
+      "settings": {}
+    },
+    {
+      "protocol": "blackhole",
+      "settings": {},
+      "tag": "blocked"
+    }
+  ],
+  "routing": {
+    "rules": [
+      {
+        "type": "field",
+        "ip": [
+          "0.0.0.0/8",
+          "10.0.0.0/8",
+          "100.64.0.0/10",
+          "169.254.0.0/16",
+          "172.16.0.0/12",
+          "192.0.0.0/24",
+          "192.0.2.0/24",
+          "192.168.0.0/16",
+          "198.18.0.0/15",
+          "198.51.100.0/24",
+          "203.0.113.0/24",
+          "::1/128",
+          "fc00::/7",
+          "fe80::/10"
+        ],
+        "outboundTag": "blocked"
+      },
+      {
+        "inboundTag": [
+          "api"
+        ],
+        "outboundTag": "api",
+        "type": "field"
+      },
+      {
+        "type": "field",
+        "outboundTag": "blocked",
+        "protocol": [
+          "bittorrent"
+        ]
+      }
+    ]
+  },
+  "stats": {},
+  "api": {
+    "services": [
+      "StatsService"
+    ],
+    "tag": "api"
+  },
+  "policy": {
+    "levels": {
+      "0": {
+        "statsUserDownlink": true,
+        "statsUserUplink": true
+      }
+    },
+    "system": {
+      "statsInboundUplink": true,
+      "statsInboundDownlink": true,
+      "statsOutboundUplink": true,
+      "statsOutboundDownlink": true
+    }
+  }
+}
+JSON
+
+# validate JSON
+if ! python3 -c "import json,sys; json.load(open('/etc/xray/config.json'))" 2>/dev/null; then
+  echo "ERROR: /etc/xray/config.json is not valid JSON"
+  exit 1
 fi
 
-# create systemd unit if not present (keeps original behavior)
-cat >/etc/systemd/system/xray.service <<'EOF'
+chown root:root /etc/xray/config.json
+chmod 644 /etc/xray/config.json
+
+# systemd unit for xray (idempotent)
+cat >/etc/systemd/system/xray.service <<'UNIT'
 [Unit]
 Description=Xray Service
 Documentation=https://github.com/xtls
@@ -271,17 +546,13 @@ LimitNOFILE=1000000
 
 [Install]
 WantedBy=multi-user.target
-EOF
+UNIT
 
 systemctl daemon-reload
 systemctl enable --now xray || true
 systemctl restart xray || true
 
-log "Selesai. Periksa:"
-echo " - nginx config: /etc/nginx/conf.d/xray.conf"
-echo " - cert: /etc/xray/xray.crt"
-echo " - key:  /etc/xray/xray.key"
-echo " - xray config: /etc/xray/config.json (pastikan inbounds sesuai dengan nginx proxy_pass ports)"
-echo " - logs: /var/log/nginx/* , /var/log/xray/*"
-
-exit 0
+log "Selesai."
+echo "Periksa /etc/nginx/conf.d/xray.conf, /etc/xray/config.json, dan /etc/xray/xray.crt & key."
+echo "Jika Xray inbound port berbeda, ubah proxy_pass di nginx atau update /etc/xray/config.json."
+echo "Pastikan Hetzner Cloud Firewall + UFW (jika dipakai) membuka port 80 & 443 untuk IPv6."
