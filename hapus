@@ -1,5 +1,8 @@
 #!/bin/bash
 clear
+
+echo "hapus xray"
+sleep 1
 systemctl stop xray
 systemctl disable xray
 killall xray
@@ -17,4 +20,46 @@ rm -f /var/log/xray/access.log
 rm -f /var/log/xray/error.log
 systemctl daemon-reload
 systemctl reset-failed
-echo "selesai"
+echo "xray di hapus"
+sleep 2
+clear
+echo "hapus nginx"
+sleep 1
+systemctl stop nginx
+systemctl disable nginx
+apt purge nginx nginx-common nginx-core -y
+rm -rf /etc/nginx
+rm -rf /usr/share/nginx
+rm -rf /var/log/nginx
+rm -rf /var/cache/nginx
+rm -rf /var/www/html
+systemctl daemon-reload
+systemctl reset-failed
+rm -f /var/log/nginx*
+echo "nginx dihapus"
+sleep 2
+clear
+echo "hapus cert"
+sleep 1
+rm -rf /etc/letsencrypt
+rm -rf /etc/xray
+rm -rf /usr/local/etc/xray
+rm -rf /root/.acme.sh
+rm -rf /etc/ssl
+rm -rf /etc/pki/tls
+rm -rf /etc/pki/ca-trust
+rm -rf /var/lib/letsencrypt
+rm -rf /var/log/letsencrypt
+find / -type f \( -name "*.crt" -o -name "*.pem" -o -name "*.key" -o -name "*.cer" \) -delete
+apt purge certbot -y 2>/dev/null || yum remove certbot -y 2>/dev/null
+rm -rf /etc/letsencrypt /var/lib/letsencrypt /var/log/letsencrypt
+~/.acme.sh/acme.sh --uninstall
+rm -rf ~/.acme.sh
+systemctl daemon-reload
+systemctl reset-failed
+echo "cert dihapus"
+sleep1
+clear
+rm -rf /usr/bin/menu
+clear
+echo "SELESAI"
