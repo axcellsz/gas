@@ -1,46 +1,171 @@
-#!/bin/bash
-set -e
+#!/usr/bin/env bash
+set -euo pipefail
 
-read -rp "Masukan Domain: " domain
+# ====== SET DOMAIN HERE ======
+DOMAIN="sgdo1.vhipee.tech"
+WS_PATH="/vless"
+XRAY_PORT="10000"   # internal (nginx -> xray)
+# ============================
 
-mkdir -p /etc/xray
-mkdir -p /var/log/xray
+export DEBIAN_FRONTEND=noninteractive
 
-# simpan domain
-echo "$domain" > /etc/xray/domain
+echo "[1/7] Update & install deps..."
+apt-get update -y
+apt-get install -y curl wget unzip nginx uuid-runtime socat cron jq openssl ca-certificates gnupg lsb-release
 
-# log files
+echo "[2/7] Install Xray (official install script)..."
+bash <(curl -fsSL https://github.com/XTLS/Xray-install/raw/main/install-release.sh) install
+
+echo "[3/7] Prepare folders..."
+mkdir -p /etc/xray /var/log/xray
 touch /var/log/xray/access.log /var/log/xray/error.log
+chmod 755 /var/log/xray
 
-# kalau xray jalan sebagai www-data, biar bisa nulis log:
-chown -R www-data:www-data /var/log/xray
-chmod 750 /var/log/xray
-chmod 640 /var/log/xray/*.log
+echo "$DOMAIN" > /etc/xray/domain
 
-# Install acme.sh (OFFICIAL installer)
-rm -rf /root/.acme.sh
-curl -fsSL https://get.acme.sh | sh
+UUID="$(cat /proc/sys/kernel/random/uuid)"
+echo "$UUID" > /etc/xray/uuid
 
-# Pastikan acme.sh ada
-source /root/.bashrc 2>/dev/null || true
+echo "[4/7] Write Xray config (VLESS WS, behind Nginx TLS)..."
+cat >/usr/local/etc/xray/config.json <<EOF
+{
+  "log": {
+    "loglevel": "warning",
+    "access": "/var/log/xray/access.log",
+    "error": "/var/log/xray/error.log"
+  },
+  "inbounds": [
+    {
+      "listen": "127.0.0.1",
+      "port": ${XRAY_PORT},
+      "protocol": "vless",
+      "settings": {
+        "clients": [
+          {
+            "id": "${UUID}",
+            "level": 0
+          }
+        ],
+        "decryption": "none"
+      },
+      "streamSettings": {
+        "network": "ws",
+        "wsSettings": {
+          "path": "${WS_PATH}"
+        }
+      },
+      "sniffing": {
+        "enabled": true,
+        "destOverride": ["http", "tls"]
+      }
+    }
+  ],
+  "outbounds": [
+    { "protocol": "freedom", "tag": "direct" },
+    { "protocol": "blackhole", "tag": "block" }
+  ]
+}
+EOF
 
-# Stop nginx biar port 80 kosong
-systemctl stop nginx 2>/dev/null || true
+echo "[5/7] Nginx vhost for WS+TLS..."
+rm -f /etc/nginx/sites-enabled/default || true
 
-# Issue cert (ECC)
-~/.acme.sh/acme.sh --upgrade --auto-upgrade
-~/.acme.sh/acme.sh --set-default-ca --server letsencrypt
-~/.acme.sh/acme.sh --issue -d "$domain" --standalone -k ec-256
+cat >/etc/nginx/sites-available/xray-ws.conf <<EOF
+server {
+    listen 80;
+    listen [::]:80;
+    server_name ${DOMAIN};
 
-# Install cert ke lokasi xray
-~/.acme.sh/acme.sh --installcert -d "$domain" --ecc \
-  --fullchainpath /etc/xray/xray.crt \
-  --keypath /etc/xray/xray.key
+    location /.well-known/acme-challenge/ {
+        root /var/www/html;
+    }
 
-chmod 644 /etc/xray/xray.crt
-chmod 600 /etc/xray/xray.key
+    location / {
+        return 301 https://\$host\$request_uri;
+    }
+}
+EOF
 
-# Start nginx lagi
-systemctl start nginx 2>/dev/null || true
+ln -sf /etc/nginx/sites-available/xray-ws.conf /etc/nginx/sites-enabled/xray-ws.conf
+nginx -t
+systemctl enable --now nginx
+systemctl restart nginx
 
-echo "✅ SSL OK: /etc/xray/xray.crt & /etc/xray/xray.key"
+echo "[6/7] Install SSL (certbot nginx, non-interactive)..."
+apt-get install -y certbot python3-certbot-nginx
+# No email, auto accept TOS
+certbot --nginx -d "${DOMAIN}" --agree-tos --register-unsafely-without-email --non-interactive --redirect
+
+# Add websocket proxy block into TLS server
+# Replace the TLS server block with proper WS proxy location
+TLS_CONF="/etc/nginx/sites-available/xray-ws.conf"
+cat >"${TLS_CONF}" <<EOF
+server {
+    listen 80;
+    listen [::]:80;
+    server_name ${DOMAIN};
+
+    location /.well-known/acme-challenge/ {
+        root /var/www/html;
+    }
+
+    location / {
+        return 301 https://\$host\$request_uri;
+    }
+}
+
+server {
+    listen 443 ssl http2;
+    listen [::]:443 ssl http2;
+    server_name ${DOMAIN};
+
+    ssl_certificate     /etc/letsencrypt/live/${DOMAIN}/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/${DOMAIN}/privkey.pem;
+
+    # basic hardening
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_prefer_server_ciphers off;
+
+    # WebSocket to Xray
+    location ${WS_PATH} {
+        proxy_redirect off;
+        proxy_pass http://127.0.0.1:${XRAY_PORT};
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade \$http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_set_header Host \$host;
+        proxy_set_header X-Real-IP \$remote_addr;
+        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+    }
+
+    # Optional: normal web
+    location / {
+        return 200 "OK\n";
+        add_header Content-Type text/plain;
+    }
+}
+EOF
+
+nginx -t
+systemctl restart nginx
+
+echo "[7/7] Start Xray..."
+systemctl enable --now xray
+systemctl restart xray
+
+echo
+echo "===== DONE ====="
+echo "DOMAIN : ${DOMAIN}"
+echo "UUID   : ${UUID}"
+echo "PATH   : ${WS_PATH}"
+echo
+echo "VLESS LINK:"
+echo "vless://${UUID}@${DOMAIN}:443?encryption=none&security=tls&type=ws&host=${DOMAIN}&path=$(python3 - <<PY
+import urllib.parse
+print(urllib.parse.quote('${WS_PATH}'))
+PY
+)#${DOMAIN}"
+echo
+echo "Check:"
+echo "  systemctl status xray --no-pager -l"
+echo "  ss -lntp | egrep ':80|:443|:${XRAY_PORT}'"
