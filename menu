@@ -1,0 +1,222 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+XRAY_CFG="/usr/local/etc/xray/config.json"
+DOMAIN_FILE="/etc/xray/domain"
+
+need_root(){ [[ $EUID -eq 0 ]] || { echo "Run: sudo $0"; exit 1; }; }
+need_cmd(){ command -v "$1" >/dev/null || { echo "Install $1: apt install -y $1"; exit 1; }; }
+pause(){ read -rp "Tekan ENTER untuk lanjut..."; }
+
+get_domain(){
+  [[ -f "$DOMAIN_FILE" ]] && tr -d ' \t\r\n' < "$DOMAIN_FILE" || echo "-"
+}
+
+backup_cfg(){
+  local ts; ts="$(date +%F_%H%M%S)"
+  mkdir -p /root/xray-backup
+  cp -a "$XRAY_CFG" "/root/xray-backup/config.json.$ts.bak"
+}
+
+get_vless_inbound_index(){
+  jq -r '
+    .inbounds|to_entries
+    | map(select(.value.protocol=="vless"))
+    | .[0].key // empty
+  ' "$XRAY_CFG"
+}
+
+ensure_clients_array(){
+  local idx="$1"
+  local tmp; tmp="$(mktemp)"
+  jq --argjson i "$idx" '
+    .inbounds[$i].settings |= (. // {})
+    | .inbounds[$i].settings.clients |= (if . == null then [] else . end)
+  ' "$XRAY_CFG" > "$tmp"
+  mv "$tmp" "$XRAY_CFG"
+}
+
+# --- ambil port/path/host dari inbound (buat link) ---
+get_inbound_port(){
+  local idx="$1"
+  jq -r --argjson i "$idx" '.inbounds[$i].port // 443' "$XRAY_CFG"
+}
+get_ws_path(){
+  local idx="$1"
+  jq -r --argjson i "$idx" '
+    .inbounds[$i].streamSettings.wsSettings.path // "/vless"
+  ' "$XRAY_CFG"
+}
+get_tls_servername(){
+  local d; d="$(get_domain)"
+  jq -r --arg d "$d" '
+    (.inbounds[]? | select(.protocol=="vless") | .streamSettings.tlsSettings.serverName) // $d
+  ' "$XRAY_CFG" 2>/dev/null || echo "$d"
+}
+
+print_link(){
+  local user="$1" uuid="$2"
+  local idx port path domain host
+  idx="$(get_vless_inbound_index)"
+  port="$(get_inbound_port "$idx")"
+  path="$(get_ws_path "$idx")"
+  domain="$(get_domain)"
+  host="$domain"
+  echo "vless://${uuid}@${domain}:${port}?encryption=none&security=tls&type=ws&path=${path}&host=${host}#${user}"
+}
+
+list_vless(){
+  clear
+  echo "==== LIST AKUN VLESS ===="
+  [[ -f "$XRAY_CFG" ]] || { echo "Config tidak ada: $XRAY_CFG"; pause; return; }
+
+  local idx; idx="$(get_vless_inbound_index || true)"
+  [[ -n "${idx:-}" ]] || { echo "Inbound VLESS tidak ditemukan."; pause; return; }
+  ensure_clients_array "$idx"
+
+  # tampilkan NO | NAMA(email) | UUID
+  jq -r --argjson i "$idx" '
+    .inbounds[$i].settings.clients
+    | to_entries
+    | map([(.key+1|tostring),
+           (.value.email // ""),
+           (.value.id // "")] | @tsv)
+    | .[]
+  ' "$XRAY_CFG" | awk -F'\t' '
+    BEGIN { printf "%-4s %-18s %s\n","NO","NAMA","UUID"; print "-----------------------------------------------------------" }
+    { printf "%-4s %-18s %s\n",$1,($2==""?"(tanpa-nama)":$2),$3 }
+  '
+  echo ""
+  pause
+}
+
+add_vless(){
+  clear
+  echo "==== BUAT AKUN VLESS ===="
+  [[ -f "$XRAY_CFG" ]] || { echo "Config tidak ada: $XRAY_CFG"; pause; return; }
+
+  local idx; idx="$(get_vless_inbound_index || true)"
+  [[ -n "${idx:-}" ]] || { echo "Inbound VLESS tidak ditemukan."; pause; return; }
+  ensure_clients_array "$idx"
+
+  local user uuid
+  read -rp "Masukkan nama akun: " user
+  user="$(echo "$user" | tr -d ' \t\r\n')"
+  [[ -n "$user" ]] || { echo "Nama kosong."; pause; return; }
+
+  # cek duplikat nama
+  if jq -e --argjson i "$idx" --arg u "$user" \
+    '.inbounds[$i].settings.clients[]? | select((.email//"")==$u)' "$XRAY_CFG" >/dev/null; then
+    echo "Nama '$user' sudah ada."
+    pause; return
+  fi
+
+  uuid="$(cat /proc/sys/kernel/random/uuid)"
+
+  backup_cfg
+  local tmp; tmp="$(mktemp)"
+  jq --argjson i "$idx" --arg id "$uuid" --arg email "$user" '
+    .inbounds[$i].settings.clients += [{"id":$id,"email":$email}]
+  ' "$XRAY_CFG" > "$tmp"
+  mv "$tmp" "$XRAY_CFG"
+
+  systemctl restart xray || true
+
+  echo ""
+  echo "✅ AKUN BERHASIL DIBUAT"
+  echo "User : $user"
+  echo "UUID : $uuid"
+  echo ""
+  echo "VLESS LINK:"
+  print_link "$user" "$uuid"
+  echo ""
+  pause
+}
+
+delete_vless(){
+  clear
+  echo "==== HAPUS AKUN VLESS ===="
+  [[ -f "$XRAY_CFG" ]] || { echo "Config tidak ada: $XRAY_CFG"; pause; return; }
+
+  local idx; idx="$(get_vless_inbound_index || true)"
+  [[ -n "${idx:-}" ]] || { echo "Inbound VLESS tidak ditemukan."; pause; return; }
+  ensure_clients_array "$idx"
+
+  echo "Daftar akun:"
+  jq -r --argjson i "$idx" '
+    .inbounds[$i].settings.clients
+    | to_entries
+    | map([(.key+1|tostring),(.value.email//""),(.value.id//"")] | @tsv)
+    | .[]
+  ' "$XRAY_CFG" | awk -F'\t' '{ printf "%-4s %-18s %s\n",$1,($2==""?"(tanpa-nama)":$2),$3 }'
+
+  echo ""
+  read -rp "Hapus pakai NOMOR atau NAMA: " pick
+  pick="$(echo "$pick" | tr -d ' \t\r\n')"
+  [[ -n "$pick" ]] || { echo "Input kosong."; pause; return; }
+
+  backup_cfg
+  local tmp; tmp="$(mktemp)"
+
+  if [[ "$pick" =~ ^[0-9]+$ ]]; then
+    local n=$((pick-1))
+    jq --argjson i "$idx" --argjson n "$n" '
+      .inbounds[$i].settings.clients |=
+        ( . as $a | [range(0; ($a|length))] | map(select(. != $n)) | map($a[.]) )
+    ' "$XRAY_CFG" > "$tmp"
+  else
+    jq --argjson i "$idx" --arg u "$pick" '
+      .inbounds[$i].settings.clients |= map(select((.email//"") != $u))
+    ' "$XRAY_CFG" > "$tmp"
+  fi
+
+  mv "$tmp" "$XRAY_CFG"
+  systemctl restart xray || true
+  echo "✅ Selesai. Xray direstart."
+  pause
+}
+
+restart_all(){
+  clear
+  systemctl restart xray || true
+  systemctl restart nginx || true
+  echo "✅ Restart done (xray+nginx)"
+  pause
+}
+
+main(){
+  need_root
+  need_cmd jq
+
+  while true; do
+    clear
+    local domain; domain="$(get_domain)"
+    cat <<EOF
+===========================
+        MENU XRAY
+===========================
+B. Buat akun VLESS
+H. Hapus akun VLESS
+L. List akun VLESS
+R. Restart Xray + Nginx
+Q. Keluar
+===========================
+Domain : $domain
+Config : $XRAY_CFG
+===========================
+
+EOF
+    read -rp "Masukan pilihan: " opt
+    opt="$(echo "$opt" | tr '[:lower:]' '[:upper:]')"
+    case "$opt" in
+      B) add_vless ;;
+      H) delete_vless ;;
+      L) list_vless ;;
+      R) restart_all ;;
+      Q) exit 0 ;;
+      *) echo "Pilihan tidak valid."; pause ;;
+    esac
+  done
+}
+
+main
