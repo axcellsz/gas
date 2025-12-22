@@ -16,57 +16,63 @@ export DEBIAN_FRONTEND=noninteractive
 need_root() { [[ "${EUID:-$(id -u)}" -eq 0 ]] || { echo "Run as root"; exit 1; }; }
 need_root
 
-echo "[0/8] Clean old configs (safe)..."
-systemctl stop xray 2>/dev/null || true
-systemctl stop nginx 2>/dev/null || true
-rm -f /etc/nginx/sites-enabled/default 2>/dev/null || true
-rm -f /etc/nginx/sites-enabled/xray-ws.conf 2>/dev/null || true
-rm -f /etc/nginx/sites-available/xray-ws.conf 2>/dev/null || true
+XRAY_CONFIG="/usr/local/etc/xray/config.json"
+USERS_DB="/etc/xray/users.json"
+NGX_SITE="/etc/nginx/sites-available/xray-ws.conf"
 
-echo "[1/8] Update & install deps..."
+echo "[0/9] Stop services & clean nginx sites..."
+systemctl stop xray >/dev/null 2>&1 || true
+systemctl stop nginx >/dev/null 2>&1 || true
+
+rm -f /etc/nginx/sites-enabled/default >/dev/null 2>&1 || true
+rm -f /etc/nginx/sites-enabled/xray-ws.conf >/dev/null 2>&1 || true
+rm -f /etc/nginx/sites-available/xray-ws.conf >/dev/null 2>&1 || true
+
+echo "[1/9] Update & install deps..."
 apt-get update -y
-apt-get install -y curl wget unzip nginx uuid-runtime socat cron jq openssl ca-certificates python3 python3-pip
+apt-get install -y curl wget unzip nginx uuid-runtime socat cron jq openssl ca-certificates python3 certbot
 
-echo "[2/8] Install Xray (official install script)..."
+echo "[2/9] Install Xray (official script)..."
 bash <(curl -fsSL https://github.com/XTLS/Xray-install/raw/main/install-release.sh) install
 
-echo "[3/8] Prepare folders..."
-mkdir -p /etc/xray /var/log/xray /var/www/html
+echo "[3/9] Prepare folders + permissions..."
+mkdir -p /etc/xray /var/log/xray /var/www/html /usr/local/etc/xray
 touch /var/log/xray/access.log /var/log/xray/error.log
 chmod 755 /var/log/xray
 
-echo "$DOMAIN" > /etc/xray/domain
+# pastikan user xray bisa nulis log
+if id xray >/dev/null 2>&1; then
+  chown -R xray:xray /var/log/xray
+else
+  # fallback kalau binary/script bikin user lain
+  chown -R root:root /var/log/xray
+fi
 
-USERS_DB="/etc/xray/users.json"
+echo "$DOMAIN" > /etc/xray/domain
+echo "$VLESS_PATH" > /etc/xray/vless_path
+echo "$VMESS_PATH" > /etc/xray/vmess_path
+echo "$VLESS_PORT" > /etc/xray/vless_port
+echo "$VMESS_PORT" > /etc/xray/vmess_port
+
 if [[ ! -f "$USERS_DB" ]]; then
   echo "[]" > "$USERS_DB"
 fi
 
-add_user() {
+add_user_db() {
   local name="$1"
-  # satu UUID dipakai untuk vless+vmess biar gampang hapus
   local uuid
-  uuid="$(cat /proc/sys/kernel/random/uuid)"
+  uuid="$(uuidgen)"
 
-  # prevent duplicate name
   if jq -e --arg n "$name" '.[] | select(.name==$n)' "$USERS_DB" >/dev/null; then
     echo "User '$name' sudah ada. Skip."
     return 0
   fi
 
-  jq --arg n "$name" --arg u "$uuid" '. + [{"name":$n,"uuid":$u,"created":(now|todate)}]' \
-    "$USERS_DB" > "${USERS_DB}.tmp" && mv "${USERS_DB}.tmp" "$USERS_DB"
-
+  jq --arg n "$name" --arg u "$uuid" \
+    '. + [{"name":$n,"uuid":$u,"created":(now|todateiso8601)}]' \
+    "$USERS_DB" > "${USERS_DB}.tmp"
+  mv "${USERS_DB}.tmp" "$USERS_DB"
   echo "OK: added user $name ($uuid)"
-}
-
-del_user() {
-  local name="$1"
-  jq --arg n "$name" 'map(select(.name != $n))' "$USERS_DB" > "${USERS_DB}.tmp" && mv "${USERS_DB}.tmp" "$USERS_DB"
-}
-
-list_users() {
-  jq -r '.[] | "\(.name)\t\(.uuid)\t\(.created)"' "$USERS_DB" | column -t || true
 }
 
 build_xray_config() {
@@ -74,7 +80,7 @@ build_xray_config() {
   vless_clients="$(jq -c '[ .[] | {id:.uuid, email:.name, level:0} ]' "$USERS_DB")"
   vmess_clients="$(jq -c '[ .[] | {id:.uuid, alterId:0, email:.name} ]' "$USERS_DB")"
 
-  cat >/usr/local/etc/xray/config.json <<EOF
+  cat >"$XRAY_CONFIG" <<EOF
 {
   "log": {
     "loglevel": "warning",
@@ -118,49 +124,19 @@ build_xray_config() {
   ]
 }
 EOF
+
+  chmod 644 "$XRAY_CONFIG"
+  /usr/local/bin/xray run -test -config "$XRAY_CONFIG" >/dev/null
 }
 
-gen_vless_link() {
-  local name="$1" uuid="$2"
-  echo "vless://${uuid}@${DOMAIN}:443?encryption=none&security=tls&type=ws&host=${DOMAIN}&path=$(python3 - <<PY
-import urllib.parse
-print(urllib.parse.quote('${VLESS_PATH}'))
-PY
-)#${name}"
-}
+echo "[4/9] Create first user: ${FIRST_USER}"
+add_user_db "${FIRST_USER}"
 
-gen_vmess_link() {
-  local name="$1" uuid="$2"
-  python3 - <<PY
-import json, base64
-cfg={
- "v":"2",
- "ps":"%s"%("${name}"),
- "add":"%s"%("${DOMAIN}"),
- "port":"443",
- "id":"%s"%("${uuid}"),
- "aid":"0",
- "scy":"auto",
- "net":"ws",
- "type":"none",
- "host":"%s"%("${DOMAIN}"),
- "path":"%s"%("${VMESS_PATH}"),
- "tls":"tls"
-}
-b=base64.b64encode(json.dumps(cfg,separators=(',',':')).encode()).decode()
-print("vmess://"+b)
-PY
-}
-
-echo "[4/8] Create first user: ${FIRST_USER}"
-add_user "${FIRST_USER}"
-
-echo "[5/8] Write Xray config (VLESS+VMESS WS behind Nginx TLS)..."
+echo "[5/9] Write Xray config..."
 build_xray_config
-/usr/local/bin/xray run -test -config /usr/local/etc/xray/config.json >/dev/null
 
-echo "[6/8] Nginx vhost (HTTP for ACME + HTTPS WS proxy)..."
-cat >/etc/nginx/sites-available/xray-ws.conf <<EOF
+echo "[6/9] Nginx vhost (HTTP for ACME)..."
+cat >"$NGX_SITE" <<EOF
 server {
     listen 80;
     listen [::]:80;
@@ -169,22 +145,21 @@ server {
     root /var/www/html;
 
     location /.well-known/acme-challenge/ { try_files \$uri =404; }
-
     location / { return 301 https://\$host\$request_uri; }
 }
 EOF
 
-ln -sf /etc/nginx/sites-available/xray-ws.conf /etc/nginx/sites-enabled/xray-ws.conf
+ln -sf "$NGX_SITE" /etc/nginx/sites-enabled/xray-ws.conf
 nginx -t
 systemctl enable --now nginx
 systemctl restart nginx
 
-echo "[7/8] Install SSL (certbot webroot, non-interactive)..."
-apt-get install -y certbot
+echo "[7/9] SSL (certbot webroot, non-interactive)..."
 certbot certonly --webroot -w /var/www/html -d "${DOMAIN}" \
   --agree-tos --register-unsafely-without-email --non-interactive --keep-until-expiring
 
-cat >/etc/nginx/sites-available/xray-ws.conf <<EOF
+echo "[8/9] Nginx vhost (HTTPS WS proxy)..."
+cat >"$NGX_SITE" <<EOF
 server {
     listen 80;
     listen [::]:80;
@@ -193,7 +168,6 @@ server {
     root /var/www/html;
 
     location /.well-known/acme-challenge/ { try_files \$uri =404; }
-
     location / { return 301 https://\$host\$request_uri; }
 }
 
@@ -232,7 +206,6 @@ server {
         proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
     }
 
-    # health
     location / {
         return 200 "OK\n";
         add_header Content-Type text/plain;
@@ -243,85 +216,26 @@ EOF
 nginx -t
 systemctl restart nginx
 
-echo "[8/8] Start Xray..."
+echo "[9/9] Start Xray..."
 systemctl enable --now xray
 systemctl restart xray
 
-# ====== MANAGEMENT SCRIPT ======
+# ===== MENU SCRIPT (FIXED) =====
 cat >/usr/local/bin/xray-menu.sh <<'EOF'
 #!/usr/bin/env bash
 set -euo pipefail
 
-DOMAIN="$(cat /etc/xray/domain 2>/dev/null || true)"
+DOMAIN="$(cat /etc/xray/domain)"
 USERS_DB="/etc/xray/users.json"
 CONFIG="/usr/local/etc/xray/config.json"
-VLESS_PATH="/vless"
-VMESS_PATH="/vmess"
-VLESS_PORT="10000"
-VMESS_PORT="10001"
+
+VLESS_PATH="$(cat /etc/xray/vless_path)"
+VMESS_PATH="$(cat /etc/xray/vmess_path)"
+VLESS_PORT="$(cat /etc/xray/vless_port)"
+VMESS_PORT="$(cat /etc/xray/vmess_port)"
 
 need_root(){ [[ "${EUID:-$(id -u)}" -eq 0 ]] || { echo "Run as root"; exit 1; }; }
 need_root
-
-add_user() {
-  read -rp "Masukkan nama akun: " name
-  [[ -n "${name}" ]] || { echo "Nama kosong"; return; }
-
-  if jq -e --arg n "$name" '.[] | select(.name==$n)' "$USERS_DB" >/dev/null; then
-    echo "User '$name' sudah ada."
-    return
-  fi
-
-  uuid="$(cat /proc/sys/kernel/random/uuid)"
-  jq --arg n "$name" --arg u "$uuid" '. + [{"name":$n,"uuid":$u,"created":(now|todate)}]' \
-    "$USERS_DB" > "${USERS_DB}.tmp" && mv "${USERS_DB}.tmp" "$USERS_DB"
-
-  rebuild_config
-
-  echo
-  echo "=== AKUN DIBUAT ==="
-  echo "User : $name"
-  echo "UUID : $uuid"
-  echo
-  echo "VLESS:"
-  python3 - <<PY
-import urllib.parse
-print(f"vless://{uuid}@{DOMAIN}:443?encryption=none&security=tls&type=ws&host={DOMAIN}&path={urllib.parse.quote('${VLESS_PATH}') }#{name}")
-PY
-  echo
-  echo "VMESS:"
-  python3 - <<PY
-import json, base64
-cfg={
- "v":"2","ps":"%s","add":"%s","port":"443","id":"%s","aid":"0","scy":"auto",
- "net":"ws","type":"none","host":"%s","path":"%s","tls":"tls"
-}
-cfg=cfg%("${name}","${DOMAIN}","${uuid}","${DOMAIN}","${VMESS_PATH}")
-b=base64.b64encode(json.dumps(cfg,separators=(',',':')).encode()).decode()
-print("vmess://"+b)
-PY
-}
-
-del_user() {
-  echo
-  echo "=== LIST AKUN ==="
-  jq -r '.[] | "\(.name)\t\(.uuid)\t\(.created)"' "$USERS_DB" | column -t || true
-  echo
-  read -rp "Masukkan nama akun yg mau dihapus: " name
-  [[ -n "${name}" ]] || { echo "Nama kosong"; return; }
-
-  jq --arg n "$name" 'map(select(.name != $n))' "$USERS_DB" > "${USERS_DB}.tmp" && mv "${USERS_DB}.tmp" "$USERS_DB"
-  rebuild_config
-  echo "OK: user '$name' dihapus."
-}
-
-list_users() {
-  echo
-  echo "=== LIST AKUN (Nama / UUID / Created) ==="
-  jq -r '.[] | "\(.name)\t\(.uuid)\t\(.created)"' "$USERS_DB" | column -t || true
-  echo
-  read -rp "Tekan ENTER untuk lanjut..." _
-}
 
 rebuild_config() {
   local vless_clients vmess_clients
@@ -360,6 +274,89 @@ JSON
 
   /usr/local/bin/xray run -test -config "$CONFIG" >/dev/null
   systemctl restart xray
+}
+
+make_links() {
+  local name="$1" uuid="$2"
+  local enc_vless enc_vmess
+  enc_vless="$(python3 - <<PY
+import urllib.parse
+print(urllib.parse.quote("${VLESS_PATH}", safe="/"))
+PY
+)"
+  enc_vmess="$(python3 - <<PY
+import json, base64
+cfg={
+ "v":"2",
+ "ps":"'"$name"'",
+ "add":"'"$DOMAIN"'",
+ "port":"443",
+ "id":"'"$uuid"'",
+ "aid":"0",
+ "scy":"auto",
+ "net":"ws",
+ "type":"none",
+ "host":"'"$DOMAIN"'",
+ "path":"'"$VMESS_PATH"'",
+ "tls":"tls"
+}
+b=base64.b64encode(json.dumps(cfg,separators=(',',':')).encode()).decode()
+print("vmess://"+b)
+PY
+)"
+  echo
+  echo "VLESS:"
+  echo "vless://${uuid}@${DOMAIN}:443?encryption=none&security=tls&type=ws&host=${DOMAIN}&path=${enc_vless}#${name}"
+  echo
+  echo "VMESS:"
+  echo "${enc_vmess}"
+  echo
+}
+
+add_user() {
+  read -rp "Masukkan nama akun: " name
+  [[ -n "${name}" ]] || { echo "Nama kosong"; return; }
+
+  if jq -e --arg n "$name" '.[] | select(.name==$n)' "$USERS_DB" >/dev/null; then
+    echo "User '$name' sudah ada."
+    sleep 1
+    return
+  fi
+
+  uuid="$(uuidgen)"
+  jq --arg n "$name" --arg u "$uuid" \
+    '. + [{"name":$n,"uuid":$u,"created":(now|todateiso8601)}]' \
+    "$USERS_DB" > "${USERS_DB}.tmp" && mv "${USERS_DB}.tmp" "$USERS_DB"
+
+  rebuild_config
+
+  echo "=== AKUN DIBUAT ==="
+  echo "User : $name"
+  echo "UUID : $uuid"
+  make_links "$name" "$uuid"
+  read -rp "Tekan ENTER untuk lanjut..." _
+}
+
+del_user() {
+  echo
+  echo "=== LIST AKUN ==="
+  jq -r '.[] | "\(.name)\t\(.uuid)\t\(.created)"' "$USERS_DB" | column -t || true
+  echo
+  read -rp "Masukkan NAMA akun yg mau dihapus: " name
+  [[ -n "${name}" ]] || { echo "Nama kosong"; return; }
+
+  jq --arg n "$name" 'map(select(.name != $n))' "$USERS_DB" > "${USERS_DB}.tmp" && mv "${USERS_DB}.tmp" "$USERS_DB"
+  rebuild_config
+  echo "OK: user '$name' dihapus."
+  read -rp "Tekan ENTER untuk lanjut..." _
+}
+
+list_users() {
+  echo
+  echo "=== LIST AKUN (Nama / UUID / Created) ==="
+  jq -r '.[] | "\(.name)\t\(.uuid)\t\(.created)"' "$USERS_DB" | column -t || true
+  echo
+  read -rp "Tekan ENTER untuk lanjut..." _
 }
 
 restart_all() {
@@ -402,12 +399,8 @@ echo "Domain  : ${DOMAIN}"
 echo "Paths   : VLESS=${VLESS_PATH}  VMESS=${VMESS_PATH}"
 echo "Ports   : VLESS=${VLESS_PORT}  VMESS=${VMESS_PORT}"
 echo
-echo "Akun awal:"
-list_users || true
+echo "Cek listen:"
+ss -lntp | egrep ":(80|443|${VLESS_PORT}|${VMESS_PORT})" || true
 echo
-echo "Jalankan menu:"
-echo "  sudo xray-menu.sh"
-echo
-echo "Cek service:"
-echo "  ss -lntp | egrep ':80|:443|:${VLESS_PORT}|:${VMESS_PORT}'"
-echo "  systemctl status xray nginx --no-pager -l"
+echo "Menu:"
+echo "  sudo /usr/local/bin/xray-menu.sh"
