@@ -1,0 +1,46 @@
+#!/bin/bash
+set -e
+
+read -rp "Masukan Domain: " domain
+
+mkdir -p /etc/xray
+mkdir -p /var/log/xray
+
+# simpan domain
+echo "$domain" > /etc/xray/domain
+
+# log files
+touch /var/log/xray/access.log /var/log/xray/error.log
+
+# kalau xray jalan sebagai www-data, biar bisa nulis log:
+chown -R www-data:www-data /var/log/xray
+chmod 750 /var/log/xray
+chmod 640 /var/log/xray/*.log
+
+# Install acme.sh (OFFICIAL installer)
+rm -rf /root/.acme.sh
+curl -fsSL https://get.acme.sh | sh
+
+# Pastikan acme.sh ada
+source /root/.bashrc 2>/dev/null || true
+
+# Stop nginx biar port 80 kosong
+systemctl stop nginx 2>/dev/null || true
+
+# Issue cert (ECC)
+~/.acme.sh/acme.sh --upgrade --auto-upgrade
+~/.acme.sh/acme.sh --set-default-ca --server letsencrypt
+~/.acme.sh/acme.sh --issue -d "$domain" --standalone -k ec-256
+
+# Install cert ke lokasi xray
+~/.acme.sh/acme.sh --installcert -d "$domain" --ecc \
+  --fullchainpath /etc/xray/xray.crt \
+  --keypath /etc/xray/xray.key
+
+chmod 644 /etc/xray/xray.crt
+chmod 600 /etc/xray/xray.key
+
+# Start nginx lagi
+systemctl start nginx 2>/dev/null || true
+
+echo "✅ SSL OK: /etc/xray/xray.crt & /etc/xray/xray.key"
