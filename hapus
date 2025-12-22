@@ -1,65 +1,66 @@
-#!/bin/bash
-clear
+#!/usr/bin/env bash
+set -euo pipefail
 
-echo "hapus xray"
-sleep 1
-systemctl stop xray
-systemctl disable xray
-killall xray
-rm -rf /usr/local/bin/xray
-rm -rf /usr/bin/xray
-rm -rf /etc/xray
+DOMAIN="sgdo1.vhipee.tech"
+
+echo "[1/7] Stop services..."
+systemctl stop xray 2>/dev/null || true
+systemctl stop nginx 2>/dev/null || true
+
+echo "[2/7] Disable services..."
+systemctl disable xray 2>/dev/null || true
+systemctl disable nginx 2>/dev/null || true
+
+echo "[3/7] Remove Xray..."
+# stop binary if still exists
+pkill -f xray 2>/dev/null || true
+
+rm -f /usr/local/bin/xray
 rm -rf /usr/local/etc/xray
-rm -rf /root/xray
-rm -rf /root/domain
-rm -rf /root/.xray
-rm -f /etc/systemd/system/xray.service
-rm -f /lib/systemd/system/xray.service
+rm -rf /etc/xray
 rm -rf /var/log/xray
-rm -f /var/log/xray/access.log
-rm -f /var/log/xray/error.log
+
+rm -f /etc/systemd/system/xray.service
+rm -rf /etc/systemd/system/xray.service.d
+
 systemctl daemon-reload
 systemctl reset-failed
-echo "xray di hapus"
-sleep 2
-clear
-echo "hapus nginx"
-sleep 1
-systemctl stop nginx
-systemctl disable nginx
-apt purge nginx nginx-common nginx-core -y
-rm -rf /etc/nginx
-rm -rf /usr/share/nginx
-rm -rf /var/log/nginx
-rm -rf /var/cache/nginx
+
+echo "[4/7] Remove Nginx configs..."
+rm -f /etc/nginx/sites-enabled/*
+rm -f /etc/nginx/sites-available/*
+rm -f /etc/nginx/conf.d/*
 rm -rf /var/www/html
-systemctl daemon-reload
-systemctl reset-failed
-rm -f /var/log/nginx*
-echo "nginx dihapus"
-sleep 2
-clear
-echo "hapus cert"
-sleep 1
+
+echo "[5/7] Remove Let's Encrypt / Certbot..."
+certbot delete --cert-name "${DOMAIN}" --non-interactive 2>/dev/null || true
+
 rm -rf /etc/letsencrypt
-rm -rf /etc/xray
-rm -rf /usr/local/etc/xray
-rm -rf /root/.acme.sh
-rm -rf /etc/ssl
-rm -rf /etc/pki/tls
-rm -rf /etc/pki/ca-trust
 rm -rf /var/lib/letsencrypt
 rm -rf /var/log/letsencrypt
-find / -type f \( -name "*.crt" -o -name "*.pem" -o -name "*.key" -o -name "*.cer" \) -delete
-apt purge certbot -y 2>/dev/null || yum remove certbot -y 2>/dev/null
-rm -rf /etc/letsencrypt /var/lib/letsencrypt /var/log/letsencrypt
-~/.acme.sh/acme.sh --uninstall
-rm -rf ~/.acme.sh
-systemctl daemon-reload
-systemctl reset-failed
-echo "cert dihapus"
-sleep1
-clear
-rm -rf /usr/bin/menu
-clear
-echo "SELESAI"
+
+echo "[6/7] Purge packages..."
+apt-get purge -y \
+  nginx nginx-common nginx-core \
+  certbot python3-certbot-nginx \
+  socat cron net-tools || true
+
+apt-get autoremove -y
+apt-get autoclean -y
+
+echo "[7/7] Final cleanup..."
+rm -rf /root/.acme.sh
+rm -f /etc/cron.d/*xray*
+rm -f /etc/cron.daily/*certbot*
+rm -f /etc/cron.weekly/*certbot*
+rm -f /etc/cron.monthly/*certbot*
+
+echo
+echo "===== UNINSTALL COMPLETE ====="
+echo "✔ Xray removed"
+echo "✔ Nginx removed"
+echo "✔ SSL / Certbot removed"
+echo "✔ Config & logs wiped"
+echo
+echo "System is CLEAN."
+echo "Reboot recommended."
